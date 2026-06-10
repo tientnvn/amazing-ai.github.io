@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Thủy Mặc — mực sống trên giấy dó</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,500&family=Be+Vietnam+Pro:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16181d;
+    --chusa:#a8341f;
+    --cham:#27486e;
+    --paper:#f3efe4;
+    --faint:rgba(22,24,29,.52);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:var(--paper)}
+  body{font-family:'Be Vietnam Pro',sans-serif;color:var(--ink)}
+  #canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+
+  .ui{position:fixed;inset:0;pointer-events:none;z-index:2}
+
+  /* ---------- title ---------- */
+  .masthead{position:absolute;top:clamp(20px,4vh,44px);left:clamp(20px,4vw,52px);max-width:min(78vw,460px)}
+  .masthead h1{
+    font-family:'Playfair Display',serif;font-weight:700;
+    font-size:clamp(2.4rem,6.5vw,4.6rem);line-height:.95;letter-spacing:-.015em;
+    animation:rise 1.4s cubic-bezier(.2,.8,.2,1) both .25s;
+  }
+  .masthead h1 em{font-style:italic;font-weight:500}
+  .masthead .sub{
+    margin-top:.85em;font-size:clamp(.68rem,1.4vw,.8rem);font-weight:400;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--faint);
+    animation:rise 1.4s cubic-bezier(.2,.8,.2,1) both .55s;
+  }
+  .masthead .rule{
+    width:52px;height:1px;background:var(--ink);opacity:.55;margin-top:1.1em;
+    transform-origin:left;animation:grow 1.2s cubic-bezier(.2,.8,.2,1) both .8s;
+  }
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+  /* ---------- hint ---------- */
+  .hint{
+    position:absolute;left:50%;bottom:clamp(86px,14vh,120px);transform:translateX(-50%);
+    font-size:.78rem;letter-spacing:.14em;color:var(--faint);white-space:nowrap;
+    animation:breathe 3.4s ease-in-out infinite;transition:opacity 1.2s ease;
+  }
+  .hint.gone{opacity:0}
+  @keyframes breathe{0%,100%{opacity:.45}50%{opacity:.9}}
+
+  /* ---------- ink stones ---------- */
+  .stones{
+    position:absolute;left:clamp(20px,4vw,52px);bottom:clamp(20px,4vh,40px);
+    display:flex;align-items:center;gap:18px;pointer-events:auto;
+    animation:rise 1.4s cubic-bezier(.2,.8,.2,1) both 1s;
+  }
+  .stone{
+    appearance:none;border:none;background:none;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;gap:7px;padding:4px;
+  }
+  .stone .dot{
+    width:26px;height:26px;border-radius:50%;position:relative;
+    transition:transform .35s cubic-bezier(.2,.8,.2,1);
+    box-shadow:inset 0 -5px 8px rgba(255,255,255,.18), inset 0 4px 7px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.2);
+  }
+  .stone .dot::after{ /* wet highlight */
+    content:'';position:absolute;top:4px;left:6px;width:8px;height:5px;border-radius:50%;
+    background:rgba(255,255,255,.5);filter:blur(1px);
+  }
+  .stone span{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);transition:color .3s}
+  .stone[aria-pressed="true"] .dot{transform:scale(1.28)}
+  .stone[aria-pressed="true"] span{color:var(--ink)}
+  .stone:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px;border-radius:6px}
+  .stone:hover .dot{transform:scale(1.18)}
+  .stone[aria-pressed="true"]:hover .dot{transform:scale(1.28)}
+
+  .wash{
+    appearance:none;border:none;background:none;cursor:pointer;margin-left:10px;padding:8px 2px;
+    font-family:'Be Vietnam Pro',sans-serif;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--faint);border-bottom:1px solid transparent;transition:color .3s,border-color .3s;
+  }
+  .wash:hover{color:var(--ink);border-color:var(--ink)}
+  .wash:focus-visible{outline:1.5px solid var(--ink);outline-offset:3px}
+
+  /* ---------- seal ---------- */
+  .seal-wrap{
+    position:absolute;right:clamp(20px,4vw,52px);bottom:clamp(20px,4vh,40px);
+    display:flex;flex-direction:column;align-items:flex-end;gap:10px;
+    animation:rise 1.4s cubic-bezier(.2,.8,.2,1) both 1.15s;
+  }
+  .seal{
+    width:46px;height:64px;background:var(--chusa);border-radius:5px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 2px 10px rgba(168,52,31,.35);
+    transform:rotate(2.5deg);
+  }
+  .seal span{
+    writing-mode:vertical-rl;color:#f6efe2;font-size:1.18rem;letter-spacing:.28em;
+    font-family:'Playfair Display',serif;font-weight:700;
+  }
+  .seal-wrap small{font-size:.6rem;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
+
+  .poem{
+    position:absolute;top:clamp(24px,4.5vh,48px);right:clamp(20px,4vw,52px);
+    font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(.85rem,1.7vw,1.05rem);
+    color:var(--faint);text-align:right;line-height:1.5;max-width:200px;
+    animation:rise 1.6s cubic-bezier(.2,.8,.2,1) both 1.4s;
+  }
+
+  .nogl{
+    position:fixed;inset:0;display:none;place-items:center;background:var(--paper);z-index:9;
+    text-align:center;padding:24px;font-size:.9rem;color:var(--ink);line-height:1.7;
+  }
+
+  @media (max-width:640px){
+    .poem{display:none}
+    .hint{bottom:120px;font-size:.7rem}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .masthead h1,.masthead .sub,.masthead .rule,.stones,.seal-wrap,.poem{animation:none}
+    .hint{animation:none;opacity:.7}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div class="ui">
+  <header class="masthead">
+    <h1>Thủy<br><em>mặc</em></h1>
+    <p class="sub">Mực sống · chất lỏng thật · giấy dó số</p>
+    <div class="rule"></div>
+  </header>
+
+  <p class="poem">“Một nét bút,<br>nghìn lớp nước.”</p>
+
+  <p class="hint" id="hint">kéo để vẽ mực · di nhẹ để khuấy nước</p>
+
+  <div class="stones" role="group" aria-label="Chọn mực">
+    <button class="stone" data-ink="den" aria-pressed="true">
+      <i class="dot" style="background:#191b20"></i><span>Mực đen</span>
+    </button>
+    <button class="stone" data-ink="chusa" aria-pressed="false">
+      <i class="dot" style="background:#a8341f"></i><span>Chu sa</span>
+    </button>
+    <button class="stone" data-ink="cham" aria-pressed="false">
+      <i class="dot" style="background:#27486e"></i><span>Chàm</span>
+    </button>
+    <button class="wash" id="wash">Rửa giấy</button>
+  </div>
+
+  <div class="seal-wrap" aria-hidden="true">
+    <div class="seal"><span>水墨</span></div>
+    <small>ấn triện · 2026</small>
+  </div>
+</div>
+
+<div class="nogl" id="nogl">
+  <p>Trình duyệt này chưa hỗ trợ WebGL2 nên mực không chảy được.<br>
+  Hãy mở trang bằng Chrome, Edge, Firefox hoặc Safari mới nhất nhé.</p>
+</div>
+
+<script>
+'use strict';
+/* ============================================================
+   THỦY MẶC — real-time Navier–Stokes fluid, rendered as ink
+   absorbing into dó paper (subtractive pigment model + grain)
+   ============================================================ */
+const canvas = document.getElementById('canvas');
+const gl = canvas.getContext('webgl2', {alpha:false, depth:false, stencil:false, antialias:false, preserveDrawingBuffer:false});
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+if (!gl || !gl.getExtension('EXT_color_buffer_float')) {
+  document.getElementById('nogl').style.display = 'grid';
+  throw new Error('WebGL2 float buffers unavailable');
+}
+
+/* ---------- config ---------- */
+const config = {
+  SIM_RES: 160,
+  DYE_RES: 1024,
+  PRESSURE_ITER: 22,
+  VEL_DISSIPATION: 0.55,
+  DYE_DISSIPATION: 0.06,
+  PRESSURE_DECAY: 0.82,
+  CURL: 14,
+  SPLAT_RADIUS_INK: 0.0022,
+  SPLAT_RADIUS_STIR: 0.0035,
+  SPLAT_FORCE: 5200,
+};
+
+/* pigment = light absorption per RGB channel (subtractive) */
+const INKS = {
+  den:   [0.95, 1.00, 1.08],   // carbon ink, slightly cool
+  chusa: [0.10, 0.95, 1.15],   // vermilion: passes red, eats green/blue
+  cham:  [1.05, 0.62, 0.18],   // indigo: eats red, passes blue
+};
+let currentInk = 'den';
+
+/* ---------- GL helpers ---------- */
+function compile(type, src){
+  const s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function program(vs, fsSrc){
+  const p = gl.createProgram();
+  gl.attachShader(p, vs);
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fsSrc));
+  gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  const u = {}, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS);
+  for (let i=0;i<n;i++){ const info = gl.getActiveUniform(p,i); u[info.name] = gl.getUniformLocation(p, info.name); }
+  return {p, u, bind(){ gl.useProgram(p); }};
+}
+
+const VERT = compile(gl.VERTEX_SHADER, `#version 300 es
+precision highp float;
+in vec2 aPosition;
+out vec2 vUv, vL, vR, vT, vB;
+uniform vec2 texelSize;
+void main(){
+  vUv = aPosition*0.5+0.5;
+  vL = vUv - vec2(texelSize.x, 0.0);
+  vR = vUv + vec2(texelSize.x, 0.0);
+  vT = vUv + vec2(0.0, texelSize.y);
+  vB = vUv - vec2(0.0, texelSize.y);
+  gl_Position = vec4(aPosition, 0.0, 1.0);
+}`);
+
+const HEAD = `#version 300 es
+precision highp float; precision highp sampler2D;
+in vec2 vUv, vL, vR, vT, vB; out vec4 fragColor;`;
+
+const progSplat = program(VERT, HEAD+`
+uniform sampler2D uTarget; uniform float aspectRatio, radius;
+uniform vec3 color; uniform vec2 point;
+void main(){
+  vec2 p = vUv - point; p.x *= aspectRatio;
+  vec3 splat = exp(-dot(p,p)/radius) * color;
+  fragColor = vec4(texture(uTarget, vUv).xyz + splat, 1.0);
+}`);
+
+const progAdvect = program(VERT, HEAD+`
+uniform sampler2D uVelocity, uSource;
+uniform vec2 texelSize; uniform float dt, dissipation;
+void main(){
+  vec2 coord = vUv - dt * texture(uVelocity, vUv).xy * texelSize;
+  fragColor = texture(uSource, coord) / (1.0 + dissipation*dt);
+}`);
+
+const progDiv = program(VERT, HEAD+`
+uniform sampler2D uVelocity;
+void main(){
+  float L = texture(uVelocity, vL).x, R = texture(uVelocity, vR).x;
+  float B = texture(uVelocity, vB).y, T = texture(uVelocity, vT).y;
+  vec2 C = texture(uVelocity, vUv).xy;
+  if (vL.x < 0.0) L = -C.x; if (vR.x > 1.0) R = -C.x;
+  if (vB.y < 0.0) B = -C.y; if (vT.y > 1.0) T = -C.y;
+  fragColor = vec4(0.5*(R-L+T-B), 0.0, 0.0, 1.0);
+}`);
+
+const progCurl = program(VERT, HEAD+`
+uniform sampler2D uVelocity;
+void main(){
+  float L = texture(uVelocity, vL).y, R = texture(uVelocity, vR).y;
+  float B = texture(uVelocity, vB).x, T = texture(uVelocity, vT).x;
+  fragColor = vec4(0.5*(R-L-T+B), 0.0, 0.0, 1.0);
+}`);
+
+const progVort = program(VERT, HEAD+`
+uniform sampler2D uVelocity, uCurl; uniform float curl, dt;
+void main(){
+  float L = texture(uCurl, vL).x, R = texture(uCurl, vR).x;
+  float B = texture(uCurl, vB).x, T = texture(uCurl, vT).x;
+  float C = texture(uCurl, vUv).x;
+  vec2 force = 0.5*vec2(abs(T)-abs(B), abs(R)-abs(L));
+  force = force/(length(force)+1e-4) * curl * C; force.y *= -1.0;
+  fragColor = vec4(texture(uVelocity, vUv).xy + force*dt, 0.0, 1.0);
+}`);
+
+const progPressure = program(VERT, HEAD+`
+uniform sampler2D uPressure, uDivergence;
+void main(){
+  float L = texture(uPressure, vL).x, R = texture(uPressure, vR).x;
+  float B = texture(uPressure, vB).x, T = texture(uPressure, vT).x;
+  float div = texture(uDivergence, vUv).x;
+  fragColor = vec4((L+R+B+T-div)*0.25, 0.0, 0.0, 1.0);
+}`);
+
+const progGrad = program(VERT, HEAD+`
+uniform sampler2D uPressure, uVelocity;
+void main(){
+  float L = texture(uPressure, vL).x, R = texture(uPressure, vR).x;
+  float B = texture(uPressure, vB).x, T = texture(uPressure, vT).x;
+  vec2 v = texture(uVelocity, vUv).xy - 0.5*vec2(R-L, T-B);
+  fragColor = vec4(v, 0.0, 1.0);
+}`);
+
+const progClear = program(VERT, HEAD+`
+uniform sampler2D uTexture; uniform float value;
+void main(){ fragColor = value * texture(uTexture, vUv); }`);
+
+const progDisplay = program(VERT, HEAD+`
+uniform sampler2D uDye; uniform vec2 texelSize; uniform float uTime;
+float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float noise(vec2 p){
+  vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f);
+  return mix(mix(hash(i), hash(i+vec2(1,0)), f.x),
+             mix(hash(i+vec2(0,1)), hash(i+vec2(1,1)), f.x), f.y);
+}
+void main(){
+  vec3 pig = max(texture(uDye, vUv).rgb, 0.0);
+  /* dó paper: warm base, long fibers, fine tooth */
+  float fiber = noise(vUv*vec2(900.0, 230.0))*0.6 + noise(vUv*vec2(180.0, 700.0))*0.4;
+  float tooth = noise(vUv*1400.0);
+  vec3 paper = mix(vec3(0.965, 0.952, 0.915), vec3(0.915, 0.898, 0.852), fiber*0.55 + tooth*0.18);
+  /* granulation: pigment settles into the tooth of the paper */
+  float grain = 0.82 + 0.36*tooth + 0.14*fiber;
+  vec3 col = paper * exp(-pig * grain);
+  /* faint wet sheen on fresh dense ink */
+  float density = dot(pig, vec3(0.333));
+  col += vec3(0.035) * smoothstep(2.5, 6.0, density) * tooth;
+  /* deckled vignette */
+  vec2 d = vUv - 0.5;
+  col *= 1.0 - dot(d,d)*0.22;
+  fragColor = vec4(col, 1.0);
+}`);
+
+/* ---------- geometry ---------- */
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, -1,3, 3,-1]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);
+gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+function blit(target){
+  if (target){ gl.viewport(0,0,target.w,target.h); gl.bindFramebuffer(gl.FRAMEBUFFER, target.fbo); }
+  else { gl.viewport(0,0,gl.drawingBufferWidth, gl.drawingBufferHeight); gl.bindFramebuffer(gl.FRAMEBUFFER, null); }
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+}
+
+/* ---------- FBOs ---------- */
+function createFBO(w, h, internal, format, type){
+  const tex = gl.createTexture();
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, tex);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.texImage2D(gl.TEXTURE_2D, 0, internal, w, h, 0, format, type, null);
+  const fbo = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+  gl.clearColor(0,0,0,1); gl.clear(gl.COLOR_BUFFER_BIT);
+  return {tex, fbo, w, h, texel:[1/w, 1/h],
+    attach(id){ gl.activeTexture(gl.TEXTURE0+id); gl.bindTexture(gl.TEXTURE_2D, this.tex); return id; }};
+}
+function doubleFBO(w, h, i, f, t){
+  let a = createFBO(w,h,i,f,t), b = createFBO(w,h,i,f,t);
+  return { get read(){return a;}, get write(){return b;}, swap(){const c=a;a=b;b=c;}, w, h, texel:[1/w,1/h] };
+}
+
+let velocity, dye, pressure, divergence, curl;
+function getRes(base){
+  const aspect = gl.drawingBufferWidth / gl.drawingBufferHeight;
+  const min = Math.round(base), max = Math.round(base * Math.max(aspect, 1/aspect));
+  return gl.drawingBufferWidth > gl.drawingBufferHeight ? {w:max, h:min} : {w:min, h:max};
+}
+function initFrameBuffers(){
+  const sim = getRes(config.SIM_RES);
+  const dyeR = getRes(Math.min(config.DYE_RES, Math.max(gl.drawingBufferWidth, gl.drawingBufferHeight)));
+  velocity  = doubleFBO(sim.w, sim.h, gl.RG16F, gl.RG, gl.HALF_FLOAT);
+  dye       = doubleFBO(dyeR.w, dyeR.h, gl.RGBA16F, gl.RGBA, gl.HALF_FLOAT);
+  pressure  = doubleFBO(sim.w, sim.h, gl.R16F, gl.RED, gl.HALF_FLOAT);
+  divergence= createFBO(sim.w, sim.h, gl.R16F, gl.RED, gl.HALF_FLOAT);
+  curl      = createFBO(sim.w, sim.h, gl.R16F, gl.RED, gl.HALF_FLOAT);
+}
+
+function resize(){
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const w = Math.floor(innerWidth * dpr), h = Math.floor(innerHeight * dpr);
+  if (canvas.width !== w || canvas.height !== h){
+    canvas.width = w; canvas.height = h;
+    initFrameBuffers();
+  }
+}
+resize();
+addEventListener('resize', resize);
+
+/* ---------- splats ---------- */
+function splat(x, y, dx, dy, inkColor, inkAmount){
+  const aspect = canvas.width / canvas.height;
+  // velocity
+  progSplat.bind();
+  gl.uniform1i(progSplat.u.uTarget, velocity.read.attach(0));
+  gl.uniform1f(progSplat.u.aspectRatio, aspect);
+  gl.uniform2f(progSplat.u.point, x, y);
+  gl.uniform3f(progSplat.u.color, dx, dy, 0);
+  gl.uniform1f(progSplat.u.radius, config.SPLAT_RADIUS_STIR);
+  blit(velocity.write); velocity.swap();
+  // pigment
+  if (inkColor && inkAmount > 0){
+    gl.uniform1i(progSplat.u.uTarget, dye.read.attach(0));
+    gl.uniform2f(progSplat.u.point, x, y);
+    gl.uniform3f(progSplat.u.color, inkColor[0]*inkAmount, inkColor[1]*inkAmount, inkColor[2]*inkAmount);
+    gl.uniform1f(progSplat.u.radius, config.SPLAT_RADIUS_INK);
+    blit(dye.write); dye.swap();
+  }
+}
+
+function clearDye(){
+  progClear.bind();
+  gl.uniform1i(progClear.u.uTexture, dye.read.attach(0));
+  gl.uniform1f(progClear.u.value, 0.0);
+  blit(dye.write); dye.swap();
+  gl.uniform1i(progClear.u.uTexture, velocity.read.attach(0));
+  blit(velocity.write); velocity.swap();
+}
+
+/* ---------- simulation step ---------- */
+function step(dt){
+  gl.disable(gl.BLEND);
+  // curl + vorticity confinement
+  progCurl.bind();
+  gl.uniform2f(progCurl.u.texelSize, ...velocity.texel);
+  gl.uniform1i(progCurl.u.uVelocity, velocity.read.attach(0));
+  blit(curl);
+
+  progVort.bind();
+  gl.uniform2f(progVort.u.texelSize, ...velocity.texel);
+  gl.uniform1i(progVort.u.uVelocity, velocity.read.attach(0));
+  gl.uniform1i(progVort.u.uCurl, curl.attach(1));
+  gl.uniform1f(progVort.u.curl, config.CURL);
+  gl.uniform1f(progVort.u.dt, dt);
+  blit(velocity.write); velocity.swap();
+
+  // divergence
+  progDiv.bind();
+  gl.uniform2f(progDiv.u.texelSize, ...velocity.texel);
+  gl.uniform1i(progDiv.u.uVelocity, velocity.read.attach(0));
+  blit(divergence);
+
+  // pressure solve
+  progClear.bind();
+  gl.uniform1i(progClear.u.uTexture, pressure.read.attach(0));
+  gl.uniform1f(progClear.u.value, config.PRESSURE_DECAY);
+  blit(pressure.write); pressure.swap();
+
+  progPressure.bind();
+  gl.uniform2f(progPressure.u.texelSize, ...velocity.texel);
+  gl.uniform1i(progPressure.u.uDivergence, divergence.attach(0));
+  for (let i=0;i<config.PRESSURE_ITER;i++){
+    gl.uniform1i(progPressure.u.uPressure, pressure.read.attach(1));
+    blit(pressure.write); pressure.swap();
+  }
+
+  // subtract gradient
+  progGrad.bind();
+  gl.uniform2f(progGrad.u.texelSize, ...velocity.texel);
+  gl.uniform1i(progGrad.u.uPressure, pressure.read.attach(0));
+  gl.uniform1i(progGrad.u.uVelocity, velocity.read.attach(1));
+  blit(velocity.write); velocity.swap();
+
+  // advect velocity
+  progAdvect.bind();
+  gl.uniform2f(progAdvect.u.texelSize, ...velocity.texel);
+  gl.uniform1i(progAdvect.u.uVelocity, velocity.read.attach(0));
+  gl.uniform1i(progAdvect.u.uSource, velocity.read.attach(0));
+  gl.uniform1f(progAdvect.u.dt, dt);
+  gl.uniform1f(progAdvect.u.dissipation, config.VEL_DISSIPATION);
+  blit(velocity.write); velocity.swap();
+
+  // advect dye
+  gl.uniform1i(progAdvect.u.uVelocity, velocity.read.attach(0));
+  gl.uniform1i(progAdvect.u.uSource, dye.read.attach(1));
+  gl.uniform1f(progAdvect.u.dissipation, config.DYE_DISSIPATION);
+  blit(dye.write); dye.swap();
+}
+
+function render(t){
+  progDisplay.bind();
+  gl.uniform2f(progDisplay.u.texelSize, 1/canvas.width, 1/canvas.height);
+  gl.uniform1i(progDisplay.u.uDye, dye.read.attach(0));
+  gl.uniform1f(progDisplay.u.uTime, t);
+  blit(null);
+}
+
+/* ---------- pointer input ---------- */
+const hint = document.getElementById('hint');
+let hasDrawn = false;
+let lastInteraction = performance.now();
+const pointers = new Map();
+
+function toUV(e){
+  const r = canvas.getBoundingClientRect();
+  return [(e.clientX - r.left)/r.width, 1 - (e.clientY - r.top)/r.height];
+}
+
+canvas.addEventListener('pointerdown', e => {
+  canvas.setPointerCapture(e.pointerId);
+  const [x,y] = toUV(e);
+  pointers.set(e.pointerId, {x, y, down:true});
+  lastInteraction = performance.now();
+});
+canvas.addEventListener('pointermove', e => {
+  const [x,y] = toUV(e);
+  let p = pointers.get(e.pointerId);
+  if (!p){ p = {x, y, down:false}; pointers.set(e.pointerId, p); }
+  const dx = x - p.x, dy = y - p.y;
+  const speed = Math.hypot(dx, dy);
+  if (speed > 0){
+    const ink = p.down || e.pointerType === 'touch' && p.down;
+    if (p.down){
+      // brush: slower stroke pools more ink, like a loaded brush
+      const amount = Math.min(0.5, 0.10 + 0.018/Math.max(speed, 0.004));
+      splat(x, y, dx*config.SPLAT_FORCE, dy*config.SPLAT_FORCE, INKS[currentInk], amount);
+      if (!hasDrawn){ hasDrawn = true; hint.classList.add('gone'); }
+    } else {
+      // hover only stirs the water beneath the surface
+      splat(x, y, dx*config.SPLAT_FORCE*0.55, dy*config.SPLAT_FORCE*0.55, null, 0);
+    }
+    lastInteraction = performance.now();
+  }
+  p.x = x; p.y = y;
+});
+const lift = e => { const p = pointers.get(e.pointerId); if (p) p.down = false; };
+canvas.addEventListener('pointerup', lift);
+canvas.addEventListener('pointercancel', lift);
+canvas.addEventListener('pointerleave', e => pointers.delete(e.pointerId));
+
+/* ---------- ink stones + wash ---------- */
+document.querySelectorAll('.stone').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentInk = btn.dataset.ink;
+    document.querySelectorAll('.stone').forEach(b => b.setAttribute('aria-pressed', b === btn));
+  });
+});
+document.getElementById('wash').addEventListener('click', clearDye);
+addEventListener('keydown', e => {
+  if (e.key === '1') document.querySelector('[data-ink="den"]').click();
+  if (e.key === '2') document.querySelector('[data-ink="chusa"]').click();
+  if (e.key === '3') document.querySelector('[data-ink="cham"]').click();
+  if (e.key.toLowerCase() === 'r') clearDye();
+});
+
+/* ---------- opening stroke: an ensō draws itself ---------- */
+const autoQueue = [];
+function planEnso(){
+  const aspect = innerWidth/innerHeight;
+  const cx = 0.5, cy = 0.52;
+  const R = Math.min(0.21, 0.36*Math.min(aspect, 1)); // shrink on narrow screens
+  const start = Math.PI*0.72, sweep = Math.PI*1.78, N = 130;
+  for (let i=0;i<N;i++){
+    const t = i/(N-1);
+    const a = start - t*sweep;
+    const wobble = 1 + 0.045*Math.sin(t*9.0) + 0.03*Math.sin(t*23.0);
+    const r = R * wobble * (1 - 0.06*t);
+    const x = cx + (r*Math.cos(a))/aspect;
+    const y = cy + r*Math.sin(a);
+    // brush load fades toward the end of the stroke — a dry-brush tail
+    const load = 0.34 * (t<0.08 ? t/0.08 : 1) * Math.pow(1-t, 0.55);
+    autoQueue.push({x, y, load, framesPerPoint: 1});
+  }
+  // the finishing dot, off the circle — "điểm nhãn"
+  autoQueue.push({pause: 26});
+  for (let i=0;i<6;i++) autoQueue.push({x: cx+R*0.62/aspect, y: cy+R*0.5, load: 0.5, framesPerPoint: 2});
+}
+let prevAuto = null, autoPause = 0;
+function runAuto(){
+  if (autoPause > 0){ autoPause--; return; }
+  const item = autoQueue.shift();
+  if (!item) return;
+  if (item.pause){ autoPause = item.pause; return; }
+  if (prevAuto){
+    const dx = item.x - prevAuto.x, dy = item.y - prevAuto.y;
+    splat(item.x, item.y, dx*config.SPLAT_FORCE*0.8, dy*config.SPLAT_FORCE*0.8, INKS.den, item.load);
+  }
+  prevAuto = item;
+}
+if (!reduceMotion) setTimeout(planEnso, 700);
+
+/* ---------- ambient ink drops while idle ---------- */
+function maybeDrop(now){
+  if (reduceMotion) return;
+  if (now - lastInteraction < 7000) return;
+  if (Math.random() > 0.006) return;
+  const x = 0.15 + Math.random()*0.7, y = 0.2 + Math.random()*0.6;
+  const a = Math.random()*Math.PI*2, f = 60 + Math.random()*120;
+  splat(x, y, Math.cos(a)*f, Math.sin(a)*f, INKS[currentInk], 0.05 + Math.random()*0.07);
+}
+
+/* ---------- main loop ---------- */
+let lastT = performance.now();
+function frame(now){
+  const dt = Math.min((now - lastT)/1000, 1/30);
+  lastT = now;
+  resize();
+  runAuto();
+  maybeDrop(now);
+  step(dt);
+  render(now/1000);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

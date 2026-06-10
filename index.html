@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazing AI — ý tưởng AI hay ho cho cộng đồng</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f2f4ef;
+    --ink:#102a30;
+    --ink-soft:rgba(16,42,48,.64);
+    --ink-faint:rgba(16,42,48,.38);
+    --teal:#0e7d83;
+    --indigo:#33508f;
+    --gold:#d9a13b;
+    --deep:#04121c;
+    --foam:#dff3f7;
+    --line:rgba(16,42,48,.14);
+    --radius:18px;
+    --maxw:1120px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Be Vietnam Pro',sans-serif;color:var(--ink);background:var(--paper);
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  ::selection{background:rgba(14,125,131,.22)}
+  img,svg{display:block}
+  a{color:inherit}
+
+  /* ================= NAV ================= */
+  nav{
+    position:fixed;top:0;left:0;right:0;z-index:50;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px clamp(20px,5vw,56px);
+    background:linear-gradient(to bottom, rgba(242,244,239,.92), rgba(242,244,239,0));
+    backdrop-filter:blur(2px);
+  }
+  .brand{
+    font-family:'Playfair Display',serif;font-weight:700;font-size:1.15rem;
+    letter-spacing:.01em;text-decoration:none;display:flex;align-items:center;gap:9px;
+  }
+  .brand .blot{width:13px;height:13px;border-radius:50% 46% 52% 48%;
+    background:radial-gradient(circle at 32% 30%, var(--teal), var(--indigo));
+    transform:rotate(8deg)}
+  .nav-links{display:flex;gap:26px}
+  .nav-links a{
+    font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;
+    text-decoration:none;color:var(--ink-soft);transition:color .25s;
+  }
+  .nav-links a:hover{color:var(--ink)}
+  @media (max-width:640px){ .nav-links{display:none} }
+
+  /* ================= HERO ================= */
+  header{
+    position:relative;min-height:92vh;display:grid;place-items:center;
+    padding:120px clamp(20px,5vw,56px) 80px;overflow:hidden;
+  }
+  #trail{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .hero-blot{
+    position:absolute;border-radius:48% 52% 46% 54%/52% 46% 54% 48%;
+    filter:blur(60px);opacity:.5;pointer-events:none;
+    animation:drift 18s ease-in-out infinite alternate;
+  }
+  .hb1{width:46vmin;height:42vmin;top:-8%;right:6%;
+    background:radial-gradient(circle at 40% 35%, rgba(14,125,131,.5), rgba(14,125,131,0) 70%)}
+  .hb2{width:38vmin;height:40vmin;bottom:-6%;left:2%;animation-delay:-7s;
+    background:radial-gradient(circle at 60% 60%, rgba(51,80,143,.42), rgba(51,80,143,0) 70%)}
+  .hb3{width:26vmin;height:24vmin;top:30%;left:18%;animation-delay:-12s;opacity:.32;
+    background:radial-gradient(circle at 50% 40%, rgba(217,161,59,.5), rgba(217,161,59,0) 70%)}
+  @keyframes drift{
+    from{transform:translate(0,0) rotate(0deg)}
+    to{transform:translate(4vmin,-3vmin) rotate(14deg)}
+  }
+  .hero-inner{position:relative;text-align:center;max-width:880px}
+  .kicker{
+    font-size:.66rem;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-soft);
+    margin-bottom:22px;animation:rise 1.2s cubic-bezier(.2,.8,.2,1) both .1s;
+  }
+  h1{
+    font-family:'Playfair Display',serif;font-weight:700;
+    font-size:clamp(2.7rem,8.5vw,6rem);line-height:1.02;letter-spacing:-.018em;
+    animation:rise 1.2s cubic-bezier(.2,.8,.2,1) both .25s;
+  }
+  h1 .ai{
+    font-style:italic;
+    background:linear-gradient(105deg, var(--teal) 10%, var(--indigo) 55%, var(--teal) 95%);
+    background-size:220% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:inkflow 7s ease-in-out infinite alternate;
+  }
+  @keyframes inkflow{from{background-position:0% 0}to{background-position:100% 0}}
+  .lede{
+    margin:26px auto 0;max-width:560px;font-size:clamp(.92rem,1.8vw,1.05rem);
+    font-weight:300;line-height:1.85;color:var(--ink-soft);
+    animation:rise 1.2s cubic-bezier(.2,.8,.2,1) both .45s;
+  }
+  .lede b{font-weight:600;color:var(--ink)}
+  .hero-cta{
+    margin-top:38px;display:flex;gap:14px;justify-content:center;flex-wrap:wrap;
+    animation:rise 1.2s cubic-bezier(.2,.8,.2,1) both .6s;
+  }
+  .btn{
+    display:inline-block;text-decoration:none;border-radius:999px;cursor:pointer;
+    font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+    padding:15px 30px;transition:transform .25s, box-shadow .25s, background .25s;
+  }
+  .btn.primary{
+    background:var(--ink);color:var(--paper);
+    box-shadow:0 8px 28px rgba(16,42,48,.25);
+  }
+  .btn.primary:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(16,42,48,.32)}
+  .btn.ghost{border:1px solid var(--line);color:var(--ink-soft)}
+  .btn.ghost:hover{border-color:var(--ink);color:var(--ink)}
+  .btn:focus-visible{outline:2px solid var(--teal);outline-offset:3px}
+  .scroll-cue{
+    position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+    font-size:.6rem;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-faint);
+    animation:bob 2.6s ease-in-out infinite;
+  }
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,7px)}}
+  @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+
+  /* ================= SECTIONS ================= */
+  section{padding:clamp(70px,11vh,130px) clamp(20px,5vw,56px)}
+  .wrap{max-width:var(--maxw);margin:0 auto}
+  .sec-head{max-width:620px;margin-bottom:54px}
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    font-size:.62rem;letter-spacing:.3em;text-transform:uppercase;color:var(--teal);
+    margin-bottom:16px;font-weight:600;
+  }
+  .eyebrow::before{content:'';width:26px;height:1px;background:var(--teal)}
+  h2{
+    font-family:'Playfair Display',serif;font-weight:700;
+    font-size:clamp(1.8rem,4.5vw,3rem);line-height:1.08;letter-spacing:-.01em;
+  }
+  h2 em{font-style:italic;font-weight:600}
+  .sec-head p{margin-top:16px;font-size:.92rem;font-weight:300;line-height:1.85;color:var(--ink-soft)}
+
+  /* ---------- demo showcase ---------- */
+  .demo{
+    display:grid;grid-template-columns:minmax(280px,5fr) 7fr;gap:clamp(26px,4vw,56px);
+    align-items:start;
+  }
+  .demo.flip{grid-template-columns:7fr minmax(280px,5fr)}
+  .demo.flip .demo-info{order:2}
+  @media (max-width:880px){
+    .demo,.demo.flip{grid-template-columns:1fr}
+    .demo.flip .demo-info{order:0}
+  }
+  .demo-info{position:sticky;top:96px}
+  @media (max-width:880px){ .demo-info{position:static} }
+  .demo-num{
+    font-family:'Playfair Display',serif;font-style:italic;font-size:.95rem;
+    color:var(--ink-faint);margin-bottom:10px;
+  }
+  .demo-info h3{
+    font-family:'Playfair Display',serif;font-weight:700;
+    font-size:clamp(1.5rem,3.4vw,2.2rem);line-height:1.1;margin-bottom:16px;
+  }
+  .demo-info p{font-size:.88rem;font-weight:300;line-height:1.9;color:var(--ink-soft);margin-bottom:14px}
+  .demo-info p b{font-weight:600;color:var(--ink)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 22px}
+  .chips span{
+    font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;font-weight:500;
+    padding:6px 12px;border-radius:99px;border:1px solid var(--line);color:var(--ink-soft);
+  }
+  .open-link{
+    font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+    text-decoration:none;color:var(--teal);border-bottom:1px solid transparent;
+    transition:border-color .25s;padding-bottom:2px;
+  }
+  .open-link:hover{border-color:var(--teal)}
+
+  /* browser-window frame */
+  .browser{
+    border-radius:var(--radius);overflow:hidden;background:#0a1d27;
+    box-shadow:0 24px 70px rgba(16,42,48,.28), 0 4px 16px rgba(16,42,48,.14);
+    border:1px solid rgba(16,42,48,.2);
+  }
+  .browser-bar{
+    display:flex;align-items:center;gap:10px;
+    padding:11px 14px;background:#11242f;border-bottom:1px solid rgba(223,243,247,.08);
+  }
+  .b-dots{display:flex;gap:6px}
+  .b-dots i{width:10px;height:10px;border-radius:50%}
+  .b-dots i:nth-child(1){background:#e0564a}
+  .b-dots i:nth-child(2){background:#e8b93e}
+  .b-dots i:nth-child(3){background:#54b868}
+  .b-url{
+    flex:1;font-size:.62rem;letter-spacing:.06em;color:rgba(223,243,247,.5);
+    background:rgba(223,243,247,.07);border-radius:7px;padding:6px 12px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:ui-monospace,monospace;
+  }
+  .browser iframe{
+    display:block;width:100%;aspect-ratio:16/10;min-height:430px;border:0;background:var(--deep);
+  }
+  .frame-note{
+    margin-top:12px;font-size:.68rem;color:var(--ink-faint);line-height:1.7;
+  }
+
+  /* ---------- dark band for game demo ---------- */
+  .dark-band{background:var(--deep);color:var(--foam)}
+  .dark-band .eyebrow{color:var(--gold)}
+  .dark-band .eyebrow::before{background:var(--gold)}
+  .dark-band .demo-num{color:rgba(223,243,247,.4)}
+  .dark-band .demo-info p{color:rgba(223,243,247,.7)}
+  .dark-band .demo-info p b{color:var(--foam)}
+  .dark-band .chips span{border-color:rgba(223,243,247,.2);color:rgba(223,243,247,.6)}
+  .dark-band .open-link{color:var(--gold)}
+  .dark-band .open-link:hover{border-color:var(--gold)}
+  .dark-band .browser{box-shadow:0 24px 80px rgba(0,0,0,.55);border-color:rgba(223,243,247,.12)}
+  .dark-band .frame-note{color:rgba(223,243,247,.4)}
+
+  /* ---------- ideas grid ---------- */
+  .ideas-grid{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;
+  }
+  .idea{
+    border:1px solid var(--line);border-radius:var(--radius);padding:26px 24px;
+    background:#fff;position:relative;overflow:hidden;
+    transition:transform .3s cubic-bezier(.2,.8,.2,1), box-shadow .3s;
+  }
+  .idea:hover{transform:translateY(-4px);box-shadow:0 16px 42px rgba(16,42,48,.13)}
+  .idea::after{
+    content:'';position:absolute;top:-30px;right:-30px;width:90px;height:86px;
+    border-radius:46% 54% 50% 50%/54% 46% 54% 46%;
+    background:var(--blot, rgba(14,125,131,.08));
+    transition:transform .4s cubic-bezier(.2,.8,.2,1);
+  }
+  .idea:hover::after{transform:scale(1.35) rotate(12deg)}
+  .idea .glyph{
+    font-size:1.45rem;margin-bottom:16px;width:46px;height:46px;border-radius:13px;
+    display:grid;place-items:center;background:var(--paper);border:1px solid var(--line);
+    position:relative;z-index:1;
+  }
+  .idea h4{font-size:1rem;font-weight:600;margin-bottom:9px;line-height:1.4;position:relative;z-index:1}
+  .idea p{font-size:.8rem;font-weight:300;line-height:1.8;color:var(--ink-soft);position:relative;z-index:1}
+  .idea .lv{
+    display:inline-block;margin-top:14px;font-size:.56rem;letter-spacing:.16em;
+    text-transform:uppercase;font-weight:600;padding:4px 11px;border-radius:99px;
+    position:relative;z-index:1;
+  }
+  .lv.easy{background:rgba(84,184,104,.14);color:#2c7a40}
+  .lv.mid{background:rgba(217,161,59,.16);color:#9a6a14}
+  .lv.hard{background:rgba(224,86,74,.13);color:#a83a30}
+
+  /* ---------- CTA ---------- */
+  .cta-card{
+    text-align:center;border-radius:26px;padding:clamp(48px,8vw,84px) clamp(24px,6vw,72px);
+    background:
+      radial-gradient(60% 100% at 18% 0%, rgba(14,125,131,.16), transparent 60%),
+      radial-gradient(50% 90% at 85% 100%, rgba(51,80,143,.16), transparent 60%),
+      #fff;
+    border:1px solid var(--line);
+  }
+  .cta-card h2{margin-bottom:16px}
+  .cta-card p{max-width:520px;margin:0 auto 30px;font-size:.9rem;font-weight:300;line-height:1.85;color:var(--ink-soft)}
+
+  footer{
+    padding:34px clamp(20px,5vw,56px);border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
+  }
+  footer small{font-size:.66rem;letter-spacing:.1em;color:var(--ink-faint)}
+
+  /* reveal on scroll */
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none !important;transition:none !important}
+    .reveal{opacity:1;transform:none}
+    html{scroll-behavior:auto}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" href="#"><span class="blot"></span>amazing·ai</a>
+  <div class="nav-links">
+    <a href="#demo-1">Demo sống</a>
+    <a href="#y-tuong">Ý tưởng</a>
+    <a href="#cong-dong">Cộng đồng</a>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<header>
+  <canvas id="trail" aria-hidden="true"></canvas>
+  <div class="hero-blot hb1"></div>
+  <div class="hero-blot hb2"></div>
+  <div class="hero-blot hb3"></div>
+
+  <div class="hero-inner">
+    <p class="kicker">Cộng đồng sáng tạo với trí tuệ nhân tạo</p>
+    <h1>Những điều <span class="ai">amazing</span><br>bạn làm được với AI</h1>
+    <p class="lede">
+      Không phải lý thuyết, không phải slide. Mỗi thứ ở đây là một <b>trang web sống</b> —
+      được tạo ra bằng AI trong một cuộc trò chuyện, chạy ngay trong trình duyệt của bạn.
+      Xem, chạm, vọc, rồi tự làm phiên bản của riêng mình.
+    </p>
+    <div class="hero-cta">
+      <a class="btn primary" href="#demo-1">Xem demo sống</a>
+      <a class="btn ghost" href="#y-tuong">Lấy ý tưởng</a>
+    </div>
+  </div>
+  <p class="scroll-cue">cuộn xuống ↓</p>
+</header>
+
+<!-- ================= DEMO 1: THỦY MẶC ================= -->
+<section id="demo-1">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">Demo sống · tương tác được</p>
+      <h2>Hai thí nghiệm, <em>một cuộc trò chuyện</em></h2>
+      <p>Cả hai trang dưới đây được AI viết toàn bộ — từ shader vật lý đến thiết kế — chỉ qua vài lượt chat.
+      Chúng đang chạy thật ngay trong khung bên dưới: cứ đưa chuột vào mà nghịch.</p>
+    </div>
+
+    <div class="demo reveal">
+      <div class="demo-info">
+        <p class="demo-num">Thí nghiệm № 01</p>
+        <h3>Thủy Mặc — mực sống trên giấy dó</h3>
+        <p>Bên dưới mặt giấy là một bộ giải phương trình <b>Navier–Stokes chạy real-time trên GPU</b>.
+        Mực được mô phỏng theo mô hình hấp thụ ánh sáng trừ màu — thấm vào vân giấy như mực thật.</p>
+        <p><b>Kéo chuột để vẽ</b>, di nhẹ để khuấy nước. Vẽ chậm mực đọng đậm, vẽ nhanh nét khô.
+        Ba nghiên mực — đen, chu sa, chàm — chồng lên nhau sẽ pha trộn đúng kiểu mực nước.</p>
+        <div class="chips">
+          <span>WebGL2</span><span>Navier–Stokes</span><span>Fragment shader</span><span>1 file HTML</span>
+        </div>
+        <a class="open-link" href="thuy-mac.html" target="_blank" rel="noopener">Mở toàn màn hình ↗</a>
+      </div>
+      <div>
+        <div class="browser">
+          <div class="browser-bar">
+            <div class="b-dots"><i></i><i></i><i></i></div>
+            <div class="b-url">thuy-mac.html — mực sống · giấy dó số</div>
+          </div>
+          <iframe src="thuy-mac.html" title="Demo Thủy Mặc — vẽ mực nước tương tác" loading="lazy"></iframe>
+        </div>
+        <p class="frame-note">💡 Demo nhúng trực tiếp — vẽ ngay trong khung được. Nếu khung trống, hãy đặt cả 3 file HTML trong cùng một thư mục.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DEMO 2: GAME (dark band) ================= -->
+<section class="dark-band" id="demo-2">
+  <div class="wrap">
+    <div class="demo flip reveal">
+      <div class="demo-info">
+        <p class="demo-num">Thí nghiệm № 02</p>
+        <h3 style="font-family:'Playfair Display',serif">Đại Chiến Rạn San Hô — game thả cá 1 phút</h3>
+        <p>Cùng dòng nước Navier–Stokes đó, nhưng giờ là một <b>game hoàn chỉnh</b>:
+        7 loài sinh vật biển vẽ theo phong cách anime cel-shading 2.5D — cá hề, ba loài cá đuôi gai,
+        tôm lửa đỏ, tôm tít và cá mao tiên.</p>
+        <p>Bạn có <b>100 sò và 60 giây</b> để thả cá. Hết giờ, 40 giây săn mồi bắt đầu:
+        cá lớn nuốt cá bé, tôm tít tung cú đấm dưới đáy. Sống sót ăn điểm —
+        nhưng nuôi sát thủ rồi thả mồi cho nó có khi còn lời hơn.</p>
+        <div class="chips">
+          <span>Game loop</span><span>Anime 2.5D</span><span>Spine-chain IK</span><span>Chiến thuật</span>
+        </div>
+        <a class="open-link" href="dai-chien-ran-san-ho.html" target="_blank" rel="noopener">Chơi toàn màn hình ↗</a>
+      </div>
+      <div>
+        <div class="browser">
+          <div class="browser-bar">
+            <div class="b-dots"><i></i><i></i><i></i></div>
+            <div class="b-url">dai-chien-ran-san-ho.html — game thả cá · 60 giây</div>
+          </div>
+          <iframe src="dai-chien-ran-san-ho.html" title="Demo game Đại Chiến Rạn San Hô" loading="lazy"></iframe>
+        </div>
+        <p class="frame-note">🎮 Chơi ngay trong khung, hoặc mở toàn màn hình để dễ thao tác trên điện thoại.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= IDEAS ================= -->
+<section id="y-tuong">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <p class="eyebrow">Ý tưởng cho bạn thử</p>
+      <h2>Bạn cũng làm được — <em>bắt đầu từ đâu?</em></h2>
+      <p>Vài ý tưởng đã được cộng đồng thử và thành công. Tất cả đều bắt đầu giống nhau:
+      mô tả điều bạn muốn cho AI bằng tiếng Việt, càng cụ thể càng tốt, rồi tinh chỉnh dần qua hội thoại.</p>
+    </div>
+
+    <div class="ideas-grid">
+      <article class="idea reveal" style="--blot:rgba(14,125,131,.09)">
+        <div class="glyph">📚</div>
+        <h4>Trợ lý ôn thi từ tài liệu của bạn</h4>
+        <p>Đưa AI giáo trình hoặc đề cương, nhờ nó sinh flashcard, câu hỏi trắc nghiệm và giải thích đáp án — đúng phạm vi bài học, không lan man.</p>
+        <span class="lv easy">Dễ — chỉ cần chat</span>
+      </article>
+
+      <article class="idea reveal" style="--blot:rgba(217,161,59,.12)">
+        <div class="glyph">🧾</div>
+        <h4>Sổ chi tiêu từ ảnh hoá đơn</h4>
+        <p>Chụp hoá đơn, AI đọc và phân loại từng khoản, cuối tháng tổng hợp thành bảng và biểu đồ chi tiêu kèm nhận xét thói quen.</p>
+        <span class="lv easy">Dễ — chỉ cần chat</span>
+      </article>
+
+      <article class="idea reveal" style="--blot:rgba(51,80,143,.1)">
+        <div class="glyph">🛍️</div>
+        <h4>Trợ lý viết nội dung bán hàng</h4>
+        <p>Mô tả sản phẩm một lần, AI viết caption theo nhiều giọng — vui nhộn, sang trọng, kể chuyện — kèm lịch đăng bài cho cả tuần.</p>
+        <span class="lv easy">Dễ — chỉ cần chat</span>
+      </article>
+
+      <article class="idea reveal" style="--blot:rgba(14,125,131,.09)">
+        <div class="glyph">🌐</div>
+        <h4>Trang web cá nhân trong một buổi tối</h4>
+        <p>Portfolio, trang cưới, menu quán cà phê — mô tả phong cách bạn thích, AI viết trọn một file HTML như hai demo phía trên.</p>
+        <span class="lv mid">Vừa — biết lưu file là đủ</span>
+      </article>
+
+      <article class="idea reveal" style="--blot:rgba(217,161,59,.12)">
+        <div class="glyph">📈</div>
+        <h4>Phân tích dữ liệu không cần Excel giỏi</h4>
+        <p>Thả file bán hàng vào, hỏi bằng tiếng Việt: "tháng nào lời nhất, mặt hàng nào đang chậm lại?" — AI tính toán, vẽ biểu đồ và chỉ ra xu hướng.</p>
+        <span class="lv mid">Vừa — có sẵn dữ liệu</span>
+      </article>
+
+      <article class="idea reveal" style="--blot:rgba(224,86,74,.09)">
+        <div class="glyph">🎮</div>
+        <h4>Game nhỏ của riêng bạn</h4>
+        <p>Như Đại Chiến Rạn San Hô phía trên: bắt đầu từ một ý tưởng vui ("game thả cá ăn nhau tính điểm"), rồi cùng AI thêm luật chơi, đồ hoạ, hiệu ứng qua từng lượt chat.</p>
+        <span class="lv hard">Thử thách — nhưng rất đã</span>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CTA ================= -->
+<section id="cong-dong" style="padding-top:0">
+  <div class="wrap">
+    <div class="cta-card reveal">
+      <p class="eyebrow" style="justify-content:center">Cộng đồng</p>
+      <h2>Bạn vừa nghĩ ra một ý tưởng?</h2>
+      <p>Đừng để nó nằm trong đầu. Mở một cuộc trò chuyện với AI, mô tả nó thật cụ thể,
+      và chia sẻ kết quả với mọi người — kể cả phiên bản đầu tiên còn vụng về.
+      Hai demo trên trang này cũng bắt đầu từ một câu: <em>"thử làm gì đó wow xem".</em></p>
+      <a class="btn primary" href="#demo-1">Xem lại demo để lấy cảm hứng</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <a class="brand" href="#"><span class="blot"></span>amazing·ai</a>
+  <small>Toàn bộ demo trên trang được tạo bằng AI · 2026 · Làm với 🖋️ và rất nhiều nước</small>
+</footer>
+
+<script>
+'use strict';
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- reveal on scroll ---------- */
+const io = new IntersectionObserver(entries => {
+  for (const e of entries){
+    if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); }
+  }
+}, {threshold: 0.12});
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+/* ---------- hero ink trail (a nod to Thủy Mặc) ---------- */
+const canvas = document.getElementById('trail');
+const ctx = canvas.getContext('2d');
+let drops = [];
+function fit(){
+  const r = canvas.parentElement.getBoundingClientRect();
+  const dpr = Math.min(devicePixelRatio || 1, 2);
+  canvas.width = r.width * dpr;
+  canvas.height = r.height * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+fit();
+addEventListener('resize', fit);
+
+if (!reduceMotion){
+  let last = null;
+  canvas.parentElement.addEventListener('pointermove', e => {
+    const r = canvas.getBoundingClientRect();
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    if (last){
+      const d = Math.hypot(x - last.x, y - last.y);
+      const steps = Math.min(6, Math.ceil(d / 14));
+      for (let i = 0; i < steps; i++){
+        const t = i / steps;
+        drops.push({
+          x: last.x + (x - last.x) * t,
+          y: last.y + (y - last.y) * t,
+          r: 2 + Math.random() * 5 + Math.min(d * 0.12, 6),
+          hue: Math.random() < 0.5 ? '14,125,131' : '51,80,143',
+          life: 1,
+        });
+      }
+    }
+    last = {x, y};
+  });
+  canvas.parentElement.addEventListener('pointerleave', () => last = null);
+
+  (function loop(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (const d of drops){
+      d.life -= 0.018;
+      d.r += 0.22;
+      if (d.life <= 0) continue;
+      const a = d.life * d.life * 0.16;
+      const g = ctx.createRadialGradient(d.x, d.y, 0, d.x, d.y, d.r);
+      g.addColorStop(0, `rgba(${d.hue},${a})`);
+      g.addColorStop(1, `rgba(${d.hue},0)`);
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    drops = drops.filter(d => d.life > 0);
+    if (drops.length > 200) drops.splice(0, drops.length - 200);
+    requestAnimationFrame(loop);
+  })();
+}
+</script>
+</body>
+</html>
