@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Asterism — Tam giác Mùa hè</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --color-bg:#000000;
+  --color-surface:#0D0D0D;
+  --color-divider:#1A1A1A;
+  --color-text:#FFFFFF;
+  --color-text-muted:#888888;
+  --color-accent:#CC44CC;
+  --color-glow:rgba(204,68,204,0.15);
+  --font-display:'Cormorant Garamond',Georgia,serif;
+  --font-body:'Inter','Lato',sans-serif;
+  --tracking-wide:0.1em;
+  --tracking-wider:0.2em;
+  --radius:2px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)}
+#scene{position:fixed;inset:0;display:block;cursor:grab}
+#scene.dragging{cursor:grabbing}
+
+/* ---------- Header ---------- */
+.header{
+  position:fixed;top:0;left:0;right:0;z-index:20;
+  display:flex;justify-content:center;padding:26px 24px 0;pointer-events:none;
+}
+.wordmark{
+  font-family:var(--font-display);font-weight:500;
+  font-size:26px;letter-spacing:var(--tracking-wider);
+  display:flex;align-items:baseline;color:var(--color-text);
+}
+.wordmark .i-star{position:relative;display:inline-block}
+.wordmark .i-star::before{
+  content:"✦";position:absolute;top:-0.72em;left:50%;transform:translateX(-50%);
+  font-size:0.42em;color:var(--color-accent);
+  text-shadow:0 0 14px var(--color-glow);
+}
+.subtitle{
+  position:fixed;top:68px;left:0;right:0;text-align:center;z-index:20;
+  font-size:11px;font-weight:300;letter-spacing:var(--tracking-wider);
+  text-transform:uppercase;color:var(--color-text-muted);pointer-events:none;
+}
+.subtitle b{font-weight:400;color:rgba(255,255,255,0.85)}
+
+/* ---------- Star navigation ---------- */
+.star-nav{
+  position:fixed;left:28px;top:50%;transform:translateY(-50%);z-index:20;
+  display:flex;flex-direction:column;gap:2px;max-height:70vh;overflow-y:auto;
+  scrollbar-width:none;
+}
+.star-nav::-webkit-scrollbar{display:none}
+.star-nav .group-label{
+  font-size:9px;letter-spacing:var(--tracking-wider);text-transform:uppercase;
+  color:var(--color-text-muted);margin:12px 0 6px;
+}
+.star-nav .group-label:first-child{margin-top:0}
+.star-nav .group-label i{font-style:normal;color:var(--color-accent)}
+.star-nav button{
+  appearance:none;background:transparent;border:none;color:var(--color-text-muted);
+  font-family:var(--font-body);font-size:11px;font-weight:400;
+  letter-spacing:var(--tracking-wide);text-transform:uppercase;
+  padding:7px 12px 7px 0;text-align:left;cursor:pointer;
+  display:flex;align-items:center;gap:10px;transition:color .25s ease;
+}
+.star-nav button .tick{
+  width:18px;height:1px;background:rgba(255,255,255,0.18);
+  transition:background .25s ease,width .25s ease;flex:none;
+}
+.star-nav button:hover{color:var(--color-text)}
+.star-nav button:hover .tick{background:rgba(255,255,255,0.5)}
+.star-nav button.active{color:var(--color-text)}
+.star-nav button.active .tick{background:var(--color-accent);width:28px}
+.star-nav button.tri{color:rgba(255,255,255,0.8)}
+.star-nav button:focus-visible{outline:1px solid var(--color-accent);outline-offset:2px}
+
+/* ---------- Info panel ---------- */
+.info{
+  position:fixed;right:28px;bottom:28px;z-index:20;width:360px;max-width:calc(100vw - 56px);
+  max-height:calc(100vh - 180px);overflow-y:auto;
+  background:var(--color-surface);border:1px solid var(--color-divider);
+  border-radius:var(--radius);padding:26px;
+  opacity:0;transform:translateY(12px);pointer-events:none;
+  transition:opacity .4s ease,transform .4s ease;
+  scrollbar-width:thin;scrollbar-color:#333 transparent;
+}
+.info.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.info .designation{
+  font-size:10px;letter-spacing:var(--tracking-wider);text-transform:uppercase;
+  color:var(--color-text-muted);margin-bottom:6px;
+}
+.info h2{
+  font-family:var(--font-display);font-weight:500;font-size:30px;
+  letter-spacing:var(--tracking-wide);line-height:1.1;
+}
+.info .viname{
+  font-family:var(--font-display);font-style:italic;font-size:15px;
+  color:rgba(255,255,255,0.75);margin:2px 0 16px;
+}
+.info .tri-badge{
+  display:inline-block;font-size:9px;letter-spacing:var(--tracking-wider);
+  text-transform:uppercase;color:var(--color-accent);
+  border:1px solid rgba(204,68,204,0.4);border-radius:var(--radius);
+  padding:4px 8px;margin-bottom:14px;
+}
+.info .data{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;
+  border-top:1px solid var(--color-divider);padding-top:14px;margin-bottom:16px;
+}
+.info .data div span{
+  display:block;font-size:9px;letter-spacing:var(--tracking-wider);
+  text-transform:uppercase;color:var(--color-text-muted);margin-bottom:3px;
+}
+.info .data div b{font-weight:400;font-size:13px;color:var(--color-text)}
+.myth{border-top:1px solid var(--color-divider);padding-top:14px;margin-top:2px}
+.myth h3{
+  font-size:9px;letter-spacing:var(--tracking-wider);text-transform:uppercase;
+  color:var(--color-text-muted);font-weight:400;margin-bottom:5px;
+}
+.myth .myth-title{
+  font-family:var(--font-display);font-style:italic;font-size:15px;
+  color:var(--color-text);margin-bottom:5px;
+}
+.myth p{font-size:12px;font-weight:300;line-height:1.7;color:var(--color-text-muted);margin-bottom:14px}
+.info .close{
+  position:absolute;top:14px;right:14px;background:none;border:none;
+  color:var(--color-text-muted);font-size:16px;cursor:pointer;line-height:1;
+  padding:6px;transition:color .2s;
+}
+.info .close:hover{color:var(--color-text)}
+
+/* ---------- Controls ---------- */
+.controls{
+  position:fixed;left:28px;bottom:28px;z-index:20;
+  display:flex;flex-direction:column;gap:14px;
+}
+.mode-toggle{display:flex;border:1px solid var(--color-divider);border-radius:var(--radius);overflow:hidden;width:max-content}
+.mode-toggle button{
+  appearance:none;background:transparent;border:none;color:var(--color-text-muted);
+  font-family:var(--font-body);font-size:10px;letter-spacing:var(--tracking-wide);
+  text-transform:uppercase;padding:9px 14px;cursor:pointer;transition:all .25s;
+}
+.mode-toggle button.on{background:var(--color-surface);color:var(--color-text)}
+.mode-toggle button:focus-visible{outline:1px solid var(--color-accent);outline-offset:-1px}
+.btn-reset{
+  appearance:none;background:transparent;border:1px solid rgba(255,255,255,0.25);
+  border-radius:var(--radius);color:var(--color-text);
+  font-family:var(--font-body);font-size:10px;letter-spacing:var(--tracking-wide);
+  text-transform:uppercase;padding:9px 16px;cursor:pointer;width:max-content;
+  transition:border-color .25s,box-shadow .25s;
+}
+.btn-reset:hover{border-color:var(--color-accent);box-shadow:0 0 24px var(--color-glow)}
+.legend{
+  font-size:10px;letter-spacing:var(--tracking-wide);text-transform:uppercase;
+  color:var(--color-text-muted);max-width:280px;line-height:1.8;
+}
+.hint{
+  font-size:10px;font-weight:300;letter-spacing:0.06em;
+  color:var(--color-text-muted);line-height:1.7;max-width:250px;
+}
+
+/* ---------- Star labels ---------- */
+.label{
+  position:fixed;z-index:10;transform:translate(-50%,-135%);
+  font-family:var(--font-body);font-size:10px;letter-spacing:var(--tracking-wider);
+  text-transform:uppercase;color:rgba(255,255,255,0.55);
+  pointer-events:auto;cursor:pointer;white-space:nowrap;text-align:center;
+  transition:color .2s;user-select:none;-webkit-user-select:none;
+}
+.label small{display:block;font-size:8px;letter-spacing:0.15em;color:var(--color-text-muted);margin-top:2px;text-transform:none}
+.label:hover{color:#fff}
+.label.tri{color:rgba(255,255,255,0.95);font-weight:500}
+.label.active{color:var(--color-accent)}
+.label.earth{color:var(--color-text-muted);font-size:8px;cursor:default}
+
+@media (max-width:760px){
+  .wordmark{font-size:20px}
+  .subtitle{top:58px;font-size:9px;padding:0 30px}
+  .star-nav{
+    left:0;right:0;top:auto;bottom:96px;transform:none;
+    flex-direction:row;align-items:center;gap:0;max-height:none;
+    overflow-x:auto;overflow-y:hidden;padding:0 16px;
+  }
+  .star-nav .group-label{display:none}
+  .star-nav button{padding:8px 10px;flex:none}
+  .star-nav button .tick{width:10px}
+  .controls{left:16px;bottom:16px;right:16px;flex-direction:row;align-items:center;flex-wrap:wrap;gap:10px}
+  .hint,.legend{display:none}
+  .info{right:16px;left:16px;bottom:150px;width:auto;padding:20px;max-height:46vh}
+  .info h2{font-size:24px}
+}
+@media (prefers-reduced-motion:reduce){
+  .info{transition:none}
+}
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<header class="header">
+  <div class="wordmark">ASTER<span class="i-star">I</span>SM</div>
+</header>
+<div class="subtitle">Mảng sao <b>Tam giác Mùa hè</b> · Vega — Altair — Deneb</div>
+
+<nav class="star-nav" id="starNav" aria-label="Danh sách ngôi sao"></nav>
+
+<aside class="info" id="infoPanel" aria-live="polite">
+  <button class="close" id="infoClose" aria-label="Đóng">✕</button>
+  <div class="designation" id="iDesig"></div>
+  <h2 id="iName"></h2>
+  <div class="viname" id="iViName"></div>
+  <div class="tri-badge" id="iBadge" style="display:none">✦ Tam giác Mùa hè</div>
+  <div class="data">
+    <div><span>Chòm sao</span><b id="iConst"></b></div>
+    <div><span>Quang phổ</span><b id="iSpec"></b></div>
+    <div><span>Cấp sao biểu kiến</span><b id="iMag"></b></div>
+    <div><span>Khoảng cách</span><b id="iDist"></b></div>
+    <div><span>Xích kinh (RA)</span><b id="iRa"></b></div>
+    <div><span>Xích vĩ (Dec)</span><b id="iDec"></b></div>
+  </div>
+  <div class="myth">
+    <h3>Thần thoại phương Tây</h3>
+    <div class="myth-title" id="iWTitle"></div>
+    <p id="iWStory"></p>
+    <h3>Thần thoại phương Đông</h3>
+    <div class="myth-title" id="iETitle"></div>
+    <p id="iEStory"></p>
+  </div>
+</aside>
+
+<div class="controls">
+  <div class="mode-toggle" role="group" aria-label="Chế độ hiển thị">
+    <button id="modeSky" class="on">Thiên cầu</button>
+    <button id="modeTrue">Khoảng cách thực</button>
+  </div>
+  <button class="btn-reset" id="btnReset">✦ &nbsp;Toàn cảnh</button>
+  <div class="legend" id="legend">Vị trí biểu kiến nhìn từ Trái Đất — hình tam giác hiện rõ trên thiên cầu</div>
+  <div class="hint">Kéo để xoay · Cuộn / chụm để thu phóng · Chạm vào một ngôi sao để tiến lại gần</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   Dữ liệu từ gemini-code-1781162505107.json
+============================================================ */
+var DATA = {
+  stars: [
+    {id:"vega", name:"Vega", vi:"Sao Chức Nữ", constellation:"Lyra", desig:"Alpha Lyrae", tri:true,
+     ra:"18h 36m 56.3s", dec:"+38 47 01", mag:0.03, ly:25.0, spec:"A0V", color:0xEAF4FF,
+     wT:"The Lyre of Orpheus", wS:"Trong thần thoại Hy Lạp, đây là cây đàn lia kỳ diệu của Orpheus — nhạc công huyền thoại. Vega là viên ngọc sáng nhất trên nhạc cụ từng làm say đắm muông thú, cây cối và cả đá tảng bằng tiếng nhạc của mình.",
+     eT:"Chức Nữ — Nàng tiên dệt vải", eS:"Trong văn hóa Á Đông, Vega là Chức Nữ, con gái Ngọc Hoàng, người dệt nên những áng mây tuyệt đẹp. Nàng đem lòng yêu chàng chăn trâu Ngưu Lang và bị đày về phía bắc sông Ngân (dải Ngân Hà)."},
+    {id:"altair", name:"Altair", vi:"Sao Ngưu Lang", constellation:"Aquila", desig:"Alpha Aquilae", tri:true,
+     ra:"19h 50m 47.0s", dec:"+08 52 06", mag:0.76, ly:16.7, spec:"A7V", color:0xFFFDF0,
+     wT:"The Eagle of Zeus", wS:"Trái tim của Aquila — đại bàng khổng lồ mang sấm sét cho thần Zeus. Đây cũng là con đại bàng được Zeus phái xuống bắt chàng trai tuấn tú Ganymede đem về đỉnh Olympus.",
+     eT:"Ngưu Lang — Chàng chăn trâu", eS:"Altair là Ngưu Lang, chàng chăn trâu hiền lành. Bị sông Ngân chia cắt với Chức Nữ, mỗi năm chàng chỉ được băng qua cầu Ô Thước gặp vợ một lần — vào đêm Thất Tịch, mùng 7 tháng 7 âm lịch."},
+    {id:"deneb", name:"Deneb", vi:"Sao Thiên Tân tứ", constellation:"Cygnus", desig:"Alpha Cygni", tri:true,
+     ra:"20h 41m 25.9s", dec:"+45 16 49", mag:1.25, ly:2600.0, spec:"A2Ia", color:0xD6E8FF,
+     wT:"The Tail of the Swan", wS:"Tên gọi bắt nguồn từ tiếng Ả Rập nghĩa là 'cái đuôi' — đánh dấu đuôi thiên nga Cygnus, hóa thân của Zeus khi đến gặp Leda. Sao này cũng gắn với Cycnus, người bạn trung thành của Phaethon, được Apollo hóa thành thiên nga khi than khóc bạn mình.",
+     eT:"Thiên Tân — Bến đò trời", eS:"Thuộc mảng sao 'Thiên Tân' — bến đò trên sông Ngân. Trong tích Thất Tịch, Deneb là bến đò vũ trụ, nơi đàn chim ô thước tụ về kết thành cầu bắc qua sông Ngân cho đôi tình nhân cách trở."},
+    {id:"sheliak", name:"Sheliak", vi:"Sao Tiệm Bích tử", constellation:"Lyra", desig:"Beta Lyrae", tri:false,
+     ra:"18h 50m 04.8s", dec:"+33 21 41", mag:3.52, ly:960.0, spec:"B7Veb", color:0xD1E6FF,
+     wT:"The Instrument Frame", wS:"Bắt nguồn từ tiếng Ả Rập 'Shiliyāq' — một trong những tên cổ của cây đàn Lia. Ngôi sao này neo giữ phần khung dưới của cây đàn thiêng trên trời của Orpheus.",
+     eT:"Tiệm Bích — Bước tiến tuần tự", eS:"Thuộc mảng sao 'Tiệm Bích', tượng trưng cho con đường bậc thang, sự tiến bước tuần tự và đường biên an toàn quanh khung cửi của Chức Nữ."},
+    {id:"sulafat", name:"Sulafat", vi:"Sao Tiệm Bích tam", constellation:"Lyra", desig:"Gamma Lyrae", tri:false,
+     ra:"18h 58m 56.6s", dec:"+32 41 22", mag:3.25, ly:620.0, spec:"B9III", color:0xE1EDFF,
+     wT:"The Tortoise Shell", wS:"Bắt nguồn từ tiếng Ả Rập nghĩa là 'con rùa'. Theo thần thoại, Hermes đã tạo ra cây đàn lia đầu tiên bằng cách căng dây lên chiếc mai rùa rỗng nhặt được, trước khi đổi nó cho Apollo.",
+     eT:"Người gác biên thiên giới", eS:"Là ngôi sao neo thứ ba của mảng 'Tiệm Bích', góp phần tuần tra vành đai thiên giới quanh khu vực dệt vải của triều đình nhà trời."},
+    {id:"tarazed", name:"Tarazed", vi:"Sao Hữu Kỳ nhất", constellation:"Aquila", desig:"Gamma Aquilae", tri:false,
+     ra:"19h 46m 15.7s", dec:"+10 36 48", mag:2.72, ly:395.0, spec:"K3II", color:0xFFECD1,
+     wT:"The Beam of the Balance", wS:"Bắt nguồn từ cụm từ Ba Tư nghĩa là 'cán cân điểm xuyết' — kim chỉ của chiếc cân, từng được dùng trong các phép canh sao cổ đại để xác định điểm cân bằng mùa vụ.",
+     eT:"Người con lớn", eS:"Trong dân gian Việt Nam và Trung Hoa, Tarazed và Alshain đứng hai bên Altair — là hai người con của Ngưu Lang và Chức Nữ. Tarazed là đứa trẻ ngồi trong một bên quang gánh trên vai Ngưu Lang khi chàng chạy về phía vợ."},
+    {id:"alshain", name:"Alshain", vi:"Sao Hữu Kỳ tam", constellation:"Aquila", desig:"Beta Aquilae", tri:false,
+     ra:"19h 55m 18.8s", dec:"+06 24 24", mag:3.71, ly:44.7, spec:"G8IV", color:0xFFFAE6,
+     wT:"The Peregrine Falcon", wS:"Bắt nguồn từ thuật ngữ Ba Tư 'Šāhin-e tarāzu' — chim ưng của chiếc cân, tạo nên trục cánh trái của đại bàng thiên giới.",
+     eT:"Người con nhỏ", eS:"Là người con thứ hai của Ngưu Lang và Chức Nữ. Cùng với Tarazed, ba ngôi sao này xếp thành một đường thẳng nổi tiếng trên bầu trời đêm — hình ảnh người cha gánh hai con trên vai đuổi theo tình yêu của mình."},
+    {id:"albireo", name:"Albireo", vi:"Sao Thiên Tân nhất", constellation:"Cygnus", desig:"Beta1 Cygni", tri:false,
+     ra:"19h 30m 43.3s", dec:"+27 57 35", mag:3.05, ly:430.0, spec:"K3II+B9V", color:0xFFE0B2,
+     wT:"The Eye of the Swan", wS:"Đánh dấu phần đầu — chiếc mỏ — của thiên nga. Nổi tiếng trong thiên văn học là một trong những cặp sao đôi đẹp nhất, với độ tương phản ngoạn mục giữa ngôi sao vàng hổ phách và bạn đồng hành xanh sapphire.",
+     eT:"Ngọn hải đăng đầu bến", eS:"Trạm đầu tiên của quần thể Bến đò trời — đóng vai trò cột mốc dẫn đường, ngọn hải đăng đặt ở cửa ngoài của bến vượt sông Ngân."},
+    {id:"sadr", name:"Sadr", vi:"Sao Thiên Tân ngũ", constellation:"Cygnus", desig:"Gamma Cygni", tri:false,
+     ra:"20h 22m 13.7s", dec:"+40 15 24", mag:2.23, ly:1500.0, spec:"F8Ib", color:0xFFFFF0,
+     wT:"The Breast of the Swan", wS:"Bắt nguồn từ tiếng Ả Rập nghĩa là 'lồng ngực'. Sao nằm đúng giao điểm của Thập Tự Phương Bắc, tượng trưng cho trái tim và thân mình thiên nga đang sải cánh dọc dải Ngân Hà.",
+     eT:"Bến trung tâm", eS:"Ngôi sao thứ năm của Bến đò trời — đại diện cho bến cảng trung tâm, nằm ngay giữa vùng mây khí dày đặc và rực sáng nhất của dòng sông thiên hà."}
+  ],
+  triangle: [["vega","altair"],["altair","deneb"],["deneb","vega"]],
+  constellationLines: [
+    ["vega","sheliak"],["sheliak","sulafat"],
+    ["tarazed","altair"],["altair","alshain"],
+    ["albireo","sadr"],["sadr","deneb"]
+  ]
+};
+
+/* ---------- chuyển RA/Dec → tọa độ ---------- */
+function parseRA(s){
+  var m = s.match(/([\d.]+)h\s*([\d.]+)m\s*([\d.]+)s/);
+  return (parseFloat(m[1]) + parseFloat(m[2])/60 + parseFloat(m[3])/3600) / 24 * Math.PI*2;
+}
+function parseDec(s){
+  var m = s.match(/([+-]?)(\d+)\s+(\d+)\s+(\d+)/);
+  var v = parseFloat(m[2]) + parseFloat(m[3])/60 + parseFloat(m[4])/3600;
+  return (m[1]==="-" ? -v : v) * Math.PI/180;
+}
+function direction(ra, dec){
+  return new THREE.Vector3(
+    Math.cos(dec)*Math.cos(ra),
+    Math.sin(dec),
+    -Math.cos(dec)*Math.sin(ra)
+  );
+}
+
+var SKY_R = 300;          // bán kính thiên cầu (chế độ biểu kiến)
+var LY = 1;               // 1 đơn vị = 1 năm ánh sáng (chế độ thực)
+
+/* ============================================================ Scene */
+var canvas = document.getElementById("scene");
+var renderer = new THREE.WebGLRenderer({canvas:canvas, antialias:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+renderer.setClearColor(0x000000,1);
+var scene = new THREE.Scene();
+var camera = new THREE.PerspectiveCamera(50, 1, 0.01, 60000);
+var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- nền sao ---------- */
+function makeStarfield(count, radius, size, opacity){
+  var geo = new THREE.BufferGeometry();
+  var pos = new Float32Array(count*3);
+  for(var i=0;i<count;i++){
+    var v = new THREE.Vector3().setFromSphericalCoords(
+      radius*(0.7+0.3*Math.random()),
+      Math.acos(2*Math.random()-1),
+      Math.random()*Math.PI*2
+    );
+    pos[i*3]=v.x; pos[i*3+1]=v.y; pos[i*3+2]=v.z;
+  }
+  geo.setAttribute("position", new THREE.BufferAttribute(pos,3));
+  return new THREE.Points(geo, new THREE.PointsMaterial({
+    color:0xffffff, size:size, sizeAttenuation:false,
+    transparent:true, opacity:opacity, depthWrite:false
+  }));
+}
+scene.add(makeStarfield(2600, 30000, 1.2, 0.5));
+scene.add(makeStarfield(900, 30000, 2.0, 0.8));
+
+/* ---------- lưới thiên cầu mờ (chỉ ở chế độ thiên cầu) ---------- */
+var sphereGrid = new THREE.LineSegments(
+  new THREE.WireframeGeometry(new THREE.SphereGeometry(SKY_R, 18, 12)),
+  new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:0.04})
+);
+scene.add(sphereGrid);
+
+/* ---------- quầng sáng ---------- */
+function glowTexture(hex){
+  var c = document.createElement("canvas"); c.width=c.height=256;
+  var ctx = c.getContext("2d");
+  var col = new THREE.Color(hex);
+  var r=Math.round(col.r*255), g=Math.round(col.g*255), b=Math.round(col.b*255);
+  var grad = ctx.createRadialGradient(128,128,0,128,128,128);
+  grad.addColorStop(0,"rgba(255,255,255,1)");
+  grad.addColorStop(0.12,"rgba("+r+","+g+","+b+",0.9)");
+  grad.addColorStop(0.4,"rgba("+r+","+g+","+b+",0.22)");
+  grad.addColorStop(1,"rgba("+r+","+g+","+b+",0)");
+  ctx.fillStyle=grad; ctx.fillRect(0,0,256,256);
+  return new THREE.CanvasTexture(c);
+}
+
+/* ---------- dựng sao ---------- */
+var starObjects = [];
+var byId = {};
+var raycastTargets = [];
+
+DATA.stars.forEach(function(s){
+  var dir = direction(parseRA(s.ra), parseDec(s.dec));
+  var posSky  = dir.clone().multiplyScalar(SKY_R);
+  var posTrue = dir.clone().multiplyScalar(s.ly*LY);
+
+  // kích thước theo độ sáng biểu kiến; thành viên Tam giác được nhấn thêm
+  var base = Math.pow(10, -0.13*s.mag);
+  var rSky  = base * (s.tri ? 6.5 : 4.2);
+  var rTrue = base * (s.tri ? 26 : 17);
+
+  var group = new THREE.Group();
+  group.position.copy(posSky);
+
+  var core = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 24, 24),
+    new THREE.MeshBasicMaterial({color:s.color})
+  );
+  group.add(core);
+
+  var glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:glowTexture(s.color), transparent:true,
+    opacity:s.tri?0.95:0.6,
+    blending:THREE.AdditiveBlending, depthWrite:false
+  }));
+  group.add(glow);
+
+  var hit = new THREE.Mesh(
+    new THREE.SphereGeometry(1,8,8),
+    new THREE.MeshBasicMaterial({visible:false})
+  );
+  hit.userData.starId = s.id;
+  group.add(hit);
+
+  scene.add(group);
+  raycastTargets.push(hit);
+
+  var label = document.createElement("div");
+  label.className = "label" + (s.tri ? " tri" : "");
+  label.innerHTML = s.name.toUpperCase() + "<small>" + s.vi + "</small>";
+  label.addEventListener("click", function(){ focusStar(s.id); });
+  document.body.appendChild(label);
+
+  var o = {data:s, group:group, core:core, glow:glow, hit:hit, labelEl:label,
+           posSky:posSky, posTrue:posTrue, rSky:rSky, rTrue:rTrue,
+           twinkle:Math.random()*Math.PI*2};
+  starObjects.push(o);
+  byId[s.id] = o;
+});
+
+/* ---------- Trái Đất tại gốc tọa độ ---------- */
+var earth = new THREE.Mesh(
+  new THREE.SphereGeometry(1.2, 16, 16),
+  new THREE.MeshBasicMaterial({color:0x4a6fa5})
+);
+scene.add(earth);
+var earthLabel = document.createElement("div");
+earthLabel.className = "label earth";
+earthLabel.textContent = "TRÁI ĐẤT";
+document.body.appendChild(earthLabel);
+
+/* ---------- đường nối động ---------- */
+function makeDynamicLine(aId, bId, material){
+  var geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(new Float32Array(6), 3));
+  var line = new THREE.Line(geo, material);
+  line.userData = {a:aId, b:bId};
+  scene.add(line);
+  return line;
+}
+// Tam giác Mùa hè — điểm nhấn magenta duy nhất của bố cục
+var triMat = new THREE.LineBasicMaterial({color:0xCC44CC, transparent:true, opacity:0.85});
+var triLines = DATA.triangle.map(function(p){ return makeDynamicLine(p[0], p[1], triMat); });
+// các đoạn chòm sao phụ — trắng rất mờ
+var ctxMat = new THREE.LineBasicMaterial({color:0xffffff, transparent:true, opacity:0.12});
+var ctxLines = DATA.constellationLines.map(function(p){ return makeDynamicLine(p[0], p[1], ctxMat); });
+
+function updateLine(line){
+  var pa = byId[line.userData.a].group.position;
+  var pb = byId[line.userData.b].group.position;
+  var arr = line.geometry.attributes.position.array;
+  arr[0]=pa.x; arr[1]=pa.y; arr[2]=pa.z;
+  arr[3]=pb.x; arr[4]=pb.y; arr[5]=pb.z;
+  line.geometry.attributes.position.needsUpdate = true;
+}
+
+/* ---------- vòng ngắm magenta ---------- */
+var reticle = (function(){
+  var c = document.createElement("canvas"); c.width=c.height=128;
+  var ctx=c.getContext("2d");
+  ctx.strokeStyle="rgba(204,68,204,0.9)"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.arc(64,64,52,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle="rgba(204,68,204,1)";
+  ctx.font="20px serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+  ctx.fillText("✦",64,10);
+  var sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map:new THREE.CanvasTexture(c), transparent:true, opacity:0, depthWrite:false
+  }));
+  scene.add(sp);
+  return sp;
+})();
+
+/* ============================================================ Điều khiển camera */
+var target = new THREE.Vector3();
+var targetGoal = new THREE.Vector3();
+var sph = {radius:780, phi:1.25, theta:2.4};
+var sphGoal = {radius:780, phi:1.25, theta:2.4};
+var minRadius = 0.5, maxRadius = 22000;
+
+function applyCamera(){
+  camera.position.setFromSphericalCoords(sph.radius, sph.phi, sph.theta).add(target);
+  camera.lookAt(target);
+}
+function clampR(r){ return Math.max(minRadius, Math.min(maxRadius, r)); }
+
+var dragging=false, lastX=0, lastY=0, moved=0;
+var pointers={}, pinchDist=0;
+
+canvas.addEventListener("pointerdown", function(e){
+  pointers[e.pointerId]={x:e.clientX,y:e.clientY};
+  var n=Object.keys(pointers).length;
+  if(n===1){ dragging=true; lastX=e.clientX; lastY=e.clientY; moved=0; canvas.classList.add("dragging"); }
+  if(n===2){
+    var ks=Object.keys(pointers);
+    pinchDist=Math.hypot(pointers[ks[0]].x-pointers[ks[1]].x, pointers[ks[0]].y-pointers[ks[1]].y);
+  }
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener("pointermove", function(e){
+  if(!pointers[e.pointerId]) return;
+  pointers[e.pointerId]={x:e.clientX,y:e.clientY};
+  var ks=Object.keys(pointers);
+  if(ks.length===2){
+    var d=Math.hypot(pointers[ks[0]].x-pointers[ks[1]].x, pointers[ks[0]].y-pointers[ks[1]].y);
+    if(pinchDist>0) sphGoal.radius=clampR(sphGoal.radius*pinchDist/d);
+    pinchDist=d; return;
+  }
+  if(!dragging) return;
+  var dx=e.clientX-lastX, dy=e.clientY-lastY;
+  moved+=Math.abs(dx)+Math.abs(dy);
+  lastX=e.clientX; lastY=e.clientY;
+  sphGoal.theta-=dx*0.005;
+  sphGoal.phi=Math.max(0.08, Math.min(Math.PI-0.08, sphGoal.phi-dy*0.005));
+});
+function endPointer(e){
+  delete pointers[e.pointerId];
+  if(Object.keys(pointers).length===0){ dragging=false; canvas.classList.remove("dragging"); }
+  pinchDist=0;
+}
+canvas.addEventListener("pointerup", function(e){
+  var tap=moved<6; endPointer(e);
+  if(tap) pick(e.clientX,e.clientY);
+});
+canvas.addEventListener("pointercancel", endPointer);
+canvas.addEventListener("wheel", function(e){
+  e.preventDefault();
+  sphGoal.radius=clampR(sphGoal.radius*(e.deltaY>0?1.12:1/1.12));
+},{passive:false});
+
+var raycaster = new THREE.Raycaster();
+function pick(cx,cy){
+  raycaster.setFromCamera(new THREE.Vector2((cx/innerWidth)*2-1, -(cy/innerHeight)*2+1), camera);
+  var hits=raycaster.intersectObjects(raycastTargets,false);
+  if(hits.length) focusStar(hits[0].object.userData.starId);
+}
+
+/* ============================================================ UI */
+var nav=document.getElementById("starNav");
+function addGroup(label, accent){
+  var d=document.createElement("div");
+  d.className="group-label";
+  d.innerHTML=accent ? "<i>✦</i> "+label : label;
+  nav.appendChild(d);
+}
+addGroup("Tam giác Mùa hè", true);
+DATA.stars.filter(function(s){return s.tri;}).forEach(addNavBtn);
+addGroup("Các sao lân cận", false);
+DATA.stars.filter(function(s){return !s.tri;}).forEach(addNavBtn);
+function addNavBtn(s){
+  var b=document.createElement("button");
+  b.innerHTML='<span class="tick"></span>'+s.name;
+  b.dataset.id=s.id;
+  if(s.tri) b.classList.add("tri");
+  b.addEventListener("click", function(){ focusStar(s.id); });
+  nav.appendChild(b);
+}
+
+var infoPanel=document.getElementById("infoPanel");
+var mode="sky";            // "sky" | "true"
+var modeMix=0;             // 0 = sky, 1 = true (nội suy mượt)
+var focusedId=null;
+
+function currentRadiusOf(o){ return o.rSky + (o.rTrue-o.rSky)*modeMix; }
+function currentPosOf(o, out){ return out.copy(o.posSky).lerp(o.posTrue, modeMix); }
+
+function focusStar(id){
+  var o=byId[id]; if(!o) return;
+  focusedId=id;
+  sphGoal.radius=clampR(currentRadiusOf(o)*10);
+  var s=o.data;
+  document.getElementById("iDesig").textContent=s.desig+" · "+s.constellation;
+  document.getElementById("iName").textContent=s.name;
+  document.getElementById("iViName").textContent=s.vi;
+  document.getElementById("iBadge").style.display=s.tri?"inline-block":"none";
+  document.getElementById("iConst").textContent=s.constellation;
+  document.getElementById("iSpec").textContent=s.spec;
+  document.getElementById("iMag").textContent=s.mag.toFixed(2);
+  document.getElementById("iDist").textContent=s.ly.toLocaleString("vi-VN")+" năm ánh sáng";
+  document.getElementById("iRa").textContent=s.ra;
+  document.getElementById("iDec").textContent=s.dec.replace(/^([+-])(\d+) (\d+) (\d+)$/, "$1$2° $3′ $4″");
+  document.getElementById("iWTitle").textContent=s.wT;
+  document.getElementById("iWStory").textContent=s.wS;
+  document.getElementById("iETitle").textContent=s.eT;
+  document.getElementById("iEStory").textContent=s.eS;
+  infoPanel.classList.add("show");
+  nav.querySelectorAll("button").forEach(function(b){ b.classList.toggle("active", b.dataset.id===id); });
+  starObjects.forEach(function(x){ x.labelEl.classList.toggle("active", x.data.id===id); });
+}
+
+function overviewRadius(){ return mode==="sky" ? 780 : 5200; }
+function resetView(){
+  focusedId=null;
+  targetGoal.set(0,0,0);
+  sphGoal.radius=overviewRadius();
+  infoPanel.classList.remove("show");
+  nav.querySelectorAll("button").forEach(function(b){ b.classList.remove("active"); });
+  starObjects.forEach(function(o){ o.labelEl.classList.remove("active"); });
+}
+document.getElementById("btnReset").addEventListener("click", resetView);
+document.getElementById("infoClose").addEventListener("click", function(){ infoPanel.classList.remove("show"); });
+
+var btnSky=document.getElementById("modeSky");
+var btnTrue=document.getElementById("modeTrue");
+var legend=document.getElementById("legend");
+function setMode(m){
+  if(m===mode) return;
+  mode=m;
+  btnSky.classList.toggle("on", m==="sky");
+  btnTrue.classList.toggle("on", m==="true");
+  legend.textContent = m==="sky"
+    ? "Vị trí biểu kiến nhìn từ Trái Đất — hình tam giác hiện rõ trên thiên cầu"
+    : "1 đơn vị = 1 năm ánh sáng — Deneb xa hơn Altair tới 155 lần";
+  if(!focusedId) sphGoal.radius=overviewRadius();
+}
+btnSky.addEventListener("click", function(){ setMode("sky"); });
+btnTrue.addEventListener("click", function(){ setMode("true"); });
+
+/* ============================================================ Vòng lặp */
+var clock=new THREE.Clock();
+var tmpV=new THREE.Vector3();
+
+function resize(){
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect=innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize);
+resize();
+applyCamera();
+
+function projectLabel(el, pos, extraHide){
+  tmpV.copy(pos).project(camera);
+  var x=(tmpV.x*0.5+0.5)*innerWidth, y=(-tmpV.y*0.5+0.5)*innerHeight;
+  if(tmpV.z>1 || x<-60 || x>innerWidth+60 || y<-20 || y>innerHeight+20 || extraHide){
+    el.style.display="none"; return;
+  }
+  el.style.display="block";
+  el.style.left=x+"px"; el.style.top=y+"px";
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  var t=clock.getElapsedTime();
+  var lerp=reducedMotion?1:0.07;
+
+  // nội suy giữa hai chế độ
+  var mixGoal = mode==="true"?1:0;
+  modeMix += (mixGoal-modeMix)*(reducedMotion?1:0.05);
+  sphereGrid.material.opacity = 0.04*(1-modeMix);
+
+  if(!focusedId && !dragging && !reducedMotion) sphGoal.theta += 0.0005;
+
+  sph.radius+=(sphGoal.radius-sph.radius)*lerp;
+  sph.phi+=(sphGoal.phi-sph.phi)*lerp;
+  sph.theta+=(sphGoal.theta-sph.theta)*lerp;
+
+  // cập nhật vị trí sao theo modeMix
+  starObjects.forEach(function(o){
+    currentPosOf(o, o.group.position);
+    var r=currentRadiusOf(o);
+    o.core.scale.setScalar(r);
+    var g=r*(o.data.tri?8:6);
+    if(!reducedMotion){
+      o.glow.material.opacity=(o.data.tri?0.85:0.5)+0.12*Math.sin(t*1.4+o.twinkle);
+      g*=1+0.02*Math.sin(t*1.4+o.twinkle);
+    }
+    // giữ đốm sáng nhìn thấy được từ xa
+    var minGlow=camera.position.distanceTo(o.group.position)*(o.data.tri?0.016:0.009);
+    o.glow.scale.setScalar(Math.max(g,minGlow));
+    o.hit.scale.setScalar(Math.max(r*4, camera.position.distanceTo(o.group.position)*0.025));
+  });
+
+  // camera bám theo sao đang chọn (kể cả khi chuyển chế độ)
+  if(focusedId) currentPosOf(byId[focusedId], targetGoal);
+  target.lerp(targetGoal, lerp);
+  applyCamera();
+
+  triLines.forEach(updateLine);
+  ctxLines.forEach(updateLine);
+
+  // Trái Đất
+  earth.scale.setScalar(Math.max(1, camera.position.length()*0.004));
+  projectLabel(earthLabel, earth.position, camera.position.length()<30);
+
+  // nhãn sao
+  starObjects.forEach(function(o){
+    var dist=camera.position.distanceTo(o.group.position);
+    var tooClose = focusedId===o.data.id && dist<currentRadiusOf(o)*12;
+    projectLabel(o.labelEl, o.group.position, false);
+    if(o.labelEl.style.display!=="none") o.labelEl.style.opacity=tooClose?0.35:1;
+  });
+
+  // vòng ngắm
+  if(focusedId){
+    var f=byId[focusedId];
+    reticle.position.copy(f.group.position);
+    reticle.scale.setScalar(Math.max(f.core.scale.x*3.4, camera.position.distanceTo(f.group.position)*0.03));
+    reticle.material.opacity+=(0.85-reticle.material.opacity)*0.1;
+  }else{
+    reticle.material.opacity+=(0-reticle.material.opacity)*0.1;
+  }
+
+  renderer.render(scene,camera);
+}
+animate();
+
+addEventListener("keydown", function(e){ if(e.key==="Escape") resetView(); });
+})();
+</script>
+</body>
+</html>
