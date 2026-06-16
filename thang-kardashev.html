@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thang Kardashev — 7 cấp độ của một nền văn minh</title>
+<meta name="description" content="Mô phỏng tương tác Thang Kardashev: 7 cấp độ văn minh từ Type 0 đến Type VI, đo bằng năng lượng một nền văn minh làm chủ — từ một hành tinh đến cả không–thời gian.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Be+Vietnam+Pro:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#07060f;
+    --void-2:#0c0a18;
+    --ink:#ece8ff;
+    --faint:rgba(236,232,255,.52);
+    --faint-2:rgba(236,232,255,.32);
+    --line:rgba(236,232,255,.14);
+    --panel:rgba(13,11,26,.72);
+    --accent:#ffc83a;
+    --accent-soft:rgba(255,200,58,.16);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--void);color:var(--ink);
+    font-family:'Be Vietnam Pro',sans-serif;font-weight:300;
+    line-height:1.7;overflow-x:hidden;
+  }
+  ::selection{background:var(--accent);color:#0a0814}
+  a{color:inherit}
+  .mono{font-family:'Space Mono',monospace}
+
+  .hero{position:relative;height:100svh;min-height:600px;overflow:hidden}
+  #sky,#stage{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #sky{z-index:0}
+  #stage{z-index:1}
+
+  .hero-grid{
+    position:relative;z-index:2;height:100%;
+    display:grid;grid-template-columns:minmax(320px,1fr) 1.15fr;
+    align-items:center;gap:30px;
+    padding:0 clamp(20px,5vw,72px);
+    pointer-events:none;
+  }
+  @media (max-width:900px){
+    .hero-grid{grid-template-columns:1fr;align-content:space-between;
+      padding-top:max(env(safe-area-inset-top),26px);padding-bottom:140px}
+    #stage{opacity:.92}
+  }
+
+  .lede{max-width:520px}
+  .eyebrow{
+    font-size:.64rem;letter-spacing:.34em;text-transform:uppercase;
+    color:var(--accent);margin-bottom:18px;transition:color .4s;
+  }
+  .lede h1{
+    font-family:'Fraunces',serif;font-weight:400;
+    font-size:clamp(2.5rem,6.4vw,4.6rem);line-height:.96;letter-spacing:-.01em;
+  }
+  .lede h1 em{font-style:italic;color:var(--accent);transition:color .4s}
+  .lede .sub{
+    margin-top:18px;font-size:clamp(.86rem,1.5vw,1rem);color:var(--faint);max-width:42ch;
+  }
+
+  .readout{
+    pointer-events:auto;justify-self:end;align-self:center;
+    width:min(86vw,400px);
+    background:var(--panel);border:1px solid var(--line);border-radius:20px;
+    backdrop-filter:blur(14px);padding:24px 26px;
+    box-shadow:0 24px 80px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.04);
+  }
+  @media (max-width:900px){ .readout{justify-self:stretch;width:auto} }
+  .readout .top{display:flex;align-items:baseline;gap:14px}
+  .roman{
+    font-family:'Fraunces',serif;font-weight:600;font-style:italic;
+    font-size:4.6rem;line-height:.8;color:var(--accent);
+    transition:color .4s;min-width:2.4ch;
+  }
+  .readout .nm{font-family:'Fraunces',serif;font-size:1.5rem;line-height:1.1}
+  .readout .tag{font-size:.72rem;color:var(--faint);letter-spacing:.02em}
+  .readout .meter{margin:18px 0 6px;display:flex;flex-direction:column;gap:9px}
+  .mrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    border-top:1px solid var(--line);padding-top:9px;font-size:.74rem;color:var(--faint)}
+  .mrow .v{font-family:'Space Mono',monospace;color:var(--ink);font-size:.92rem;text-align:right}
+  .mrow .v sup{font-size:.62em}
+  .desc{margin-top:14px;font-size:.78rem;color:var(--faint);line-height:1.75;min-height:4.2em}
+
+  .dialwrap{
+    position:absolute;left:0;right:0;bottom:0;z-index:3;
+    padding:0 clamp(20px,5vw,72px) clamp(20px,3vh,30px);
+    pointer-events:none;
+  }
+  .dial{
+    pointer-events:auto;position:relative;height:64px;
+    display:flex;align-items:center;
+  }
+  .track{position:absolute;left:0;right:0;top:50%;height:3px;border-radius:3px;
+    background:linear-gradient(90deg,#ff6b35,#ffc83a,#9fd4ff,#6d8bff,#9b6bff,#d65fff,#ff8fe0);
+    opacity:.55;transform:translateY(-50%)}
+  .track-fill{position:absolute;left:0;top:50%;height:3px;border-radius:3px;
+    transform:translateY(-50%);background:var(--accent);box-shadow:0 0 16px var(--accent)}
+  .ticks{position:absolute;inset:0;pointer-events:none}
+  .tick{position:absolute;top:50%;transform:translate(-50%,-50%);
+    display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;pointer-events:auto}
+  .tick i{display:block;width:1px;height:11px;background:var(--faint-2)}
+  .tick b{font-family:'Fraunces',serif;font-size:.82rem;color:var(--faint);transition:color .3s,transform .3s}
+  .tick:hover b{color:var(--ink);transform:translateY(-2px)}
+  .you{position:absolute;top:50%;transform:translate(-50%,-50%);pointer-events:none;text-align:center}
+  .you .dot{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px rgba(255,255,255,.18),0 0 14px #fff}
+  .you span{position:absolute;top:-34px;left:50%;transform:translateX(-50%);white-space:nowrap;
+    font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,.78)}
+  .handle{position:absolute;top:50%;transform:translate(-50%,-50%);
+    width:26px;height:26px;border-radius:50%;cursor:grab;
+    background:var(--accent);box-shadow:0 0 0 5px var(--accent-soft),0 4px 18px rgba(0,0,0,.6);
+    transition:box-shadow .3s,background .4s;touch-action:none}
+  .handle:active{cursor:grabbing}
+  .handle:focus-visible{outline:2px solid #fff;outline-offset:5px}
+  .dial-foot{display:flex;justify-content:space-between;align-items:center;margin-top:14px;
+    font-size:.66rem;letter-spacing:.12em;color:var(--faint-2);text-transform:uppercase}
+  .play{pointer-events:auto;appearance:none;border:1px solid var(--line);
+    background:var(--panel);color:var(--ink);border-radius:99px;cursor:pointer;
+    font-family:'Be Vietnam Pro',sans-serif;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+    padding:8px 16px;backdrop-filter:blur(8px);transition:border-color .3s,color .3s}
+  .play:hover{border-color:var(--accent);color:var(--accent)}
+
+  .cue{position:absolute;left:50%;bottom:118px;transform:translateX(-50%);z-index:3;
+    font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--faint-2);pointer-events:none}
+  @media (max-width:900px){ .cue{display:none} }
+
+  .scale{max-width:1080px;margin:0 auto;padding:clamp(70px,12vh,140px) clamp(20px,5vw,40px) 40px}
+  .scale-head{max-width:640px;margin-bottom:54px}
+  .scale-head .eyebrow{color:var(--faint)}
+  .scale-head h2{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(1.8rem,4vw,2.8rem);line-height:1.05}
+  .scale-head h2 em{font-style:italic}
+  .scale-head p{margin-top:16px;color:var(--faint);font-size:.92rem}
+  .formula{margin-top:22px;display:inline-flex;align-items:center;gap:14px;flex-wrap:wrap;
+    background:var(--void-2);border:1px solid var(--line);border-radius:14px;padding:14px 20px}
+  .formula .mono{font-size:1.05rem;color:var(--ink)}
+  .formula small{font-size:.68rem;color:var(--faint);max-width:30ch}
+
+  .rung{
+    display:grid;grid-template-columns:120px 1fr;gap:clamp(18px,4vw,46px);
+    padding:34px 0;border-top:1px solid var(--line);
+    cursor:pointer;position:relative;
+    opacity:0;transform:translateY(28px);transition:opacity .8s,transform .8s,background .4s;
+  }
+  .rung.in{opacity:1;transform:none}
+  .rung:hover{background:linear-gradient(90deg,var(--rc-soft),transparent 60%)}
+  .rung:last-child{border-bottom:1px solid var(--line)}
+  .rung .idx{text-align:right}
+  .rung .idx .r{font-family:'Fraunces',serif;font-style:italic;font-weight:600;
+    font-size:clamp(3rem,7vw,5rem);line-height:.8;color:var(--rc)}
+  .rung .idx .p{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--faint);margin-top:10px}
+  .rung .idx .p sup{font-size:.7em}
+  .rung .body h3{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(1.3rem,3vw,1.9rem);line-height:1.1}
+  .rung .body .role{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--rc);margin:4px 0 12px}
+  .rung .body p{color:var(--faint);font-size:.9rem;max-width:62ch}
+  .rung .body .can{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+  .rung .body .can span{font-size:.68rem;color:var(--ink);background:var(--void-2);
+    border:1px solid var(--line);border-radius:99px;padding:5px 12px}
+  .rung .body .bar{margin-top:18px;height:4px;border-radius:4px;background:var(--void-2);overflow:hidden}
+  .rung .body .bar i{display:block;height:100%;border-radius:4px;background:var(--rc);
+    width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+  .rung.in .body .bar i{width:var(--fill)}
+
+  .now{max-width:1080px;margin:0 auto;padding:60px clamp(20px,5vw,40px) 30px}
+  .now-card{position:relative;border:1px solid var(--line);border-radius:24px;overflow:hidden;
+    background:radial-gradient(120% 160% at 18% 0%, rgba(255,107,53,.14), transparent 55%),var(--void-2)}
+  .now-inner{padding:clamp(28px,5vw,52px)}
+  .now h2{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(1.6rem,3.6vw,2.5rem);line-height:1.06}
+  .now h2 em{font-style:italic;color:#ffb24a}
+  .now p{margin-top:16px;color:var(--faint);font-size:.92rem;max-width:64ch}
+  .now .figs{margin-top:30px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:1px;
+    background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .now .fig{background:var(--void-2);padding:20px}
+  .now .fig .n{font-family:'Space Mono',monospace;font-size:1.5rem;color:#ffb24a}
+  .now .fig .l{font-size:.68rem;color:var(--faint);letter-spacing:.06em;margin-top:6px}
+  .now .src{margin-top:22px;font-size:.7rem;color:var(--faint-2);line-height:1.7}
+
+  footer{max-width:1080px;margin:0 auto;padding:50px clamp(20px,5vw,40px) 70px;
+    border-top:1px solid var(--line);margin-top:50px}
+  footer small{font-size:.7rem;color:var(--faint-2);letter-spacing:.04em}
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    .rung{transition:opacity .3s}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <canvas id="sky"></canvas>
+  <canvas id="stage"></canvas>
+
+  <div class="hero-grid">
+    <div class="lede">
+      <p class="eyebrow" id="eyebrow">Thang đo nền văn minh · 1964</p>
+      <h1>Thang<br><em>Kardashev</em></h1>
+      <p class="sub">Đo độ tiến hoá của một nền văn minh không bằng tuổi đời hay tri thức,
+      mà bằng <b>năng lượng nó làm chủ</b> — từ một hành tinh, đến một ngôi sao, đến cả không–thời gian.
+      Kéo núm bên dưới để thăng cấp.</p>
+    </div>
+
+    <div class="readout">
+      <div class="top">
+        <div class="roman" id="rRoman">0</div>
+        <div>
+          <div class="nm" id="rName">Tiền hành tinh</div>
+          <div class="tag" id="rTag">Văn minh sơ khai trên một thế giới</div>
+        </div>
+      </div>
+      <div class="meter">
+        <div class="mrow"><span>Chỉ số Kardashev (K)</span><span class="v" id="rK">0.73</span></div>
+        <div class="mrow"><span>Năng lượng làm chủ</span><span class="v" id="rP">10<sup>13</sup> W</span></div>
+        <div class="mrow"><span>So với nhân loại nay</span><span class="v" id="rRel">≈ 1×</span></div>
+      </div>
+      <p class="desc" id="rDesc"></p>
+    </div>
+  </div>
+
+  <p class="cue">cuộn xuống để xem cả 7 cấp ↓</p>
+
+  <div class="dialwrap">
+    <div class="dial" id="dial">
+      <div class="track"></div>
+      <div class="track-fill" id="trackFill"></div>
+      <div class="ticks" id="ticks"></div>
+      <div class="you" id="youMark"><div class="dot"></div><span>Nhân loại · K≈0.73</span></div>
+      <div class="handle" id="handle" role="slider" tabindex="0"
+        aria-label="Chỉ số Kardashev" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0.73"></div>
+    </div>
+    <div class="dial-foot">
+      <span>← kéo để thay đổi năng lượng →</span>
+      <button class="play" id="play">▶ Tự động thăng cấp</button>
+    </div>
+  </div>
+</section>
+
+<section class="scale">
+  <div class="scale-head">
+    <p class="eyebrow">Bảy nấc thang</p>
+    <h2>Mỗi cấp mạnh hơn cấp dưới <em>mười tỉ lần</em></h2>
+    <p>Nhà thiên văn Liên Xô Nikolai Kardashev đề xuất thang này năm 1964 với ba cấp đầu.
+    Người đời sau nối thêm Type 0 ở dưới và Type IV–VI ở trên, thành bảy nấc. Khoảng cách giữa
+    hai nấc liền nhau là một bước nhảy <b>10¹⁰</b> — lớn đến mức khó hình dung.</p>
+    <div class="formula">
+      <span class="mono">K = ( log₁₀ P − 6 ) / 10</span>
+      <small>P là công suất tính bằng watt. Carl Sagan đưa ra công thức nội suy này để tính cả những giá trị lưng chừng.</small>
+    </div>
+  </div>
+  <div id="rungs"></div>
+</section>
+
+<section class="now">
+  <div class="now-card"><div class="now-inner">
+    <h2>Còn nhân loại? <em>Chúng ta chưa tới Type I.</em></h2>
+    <p>Cả thế giới hiện tiêu thụ khoảng 20 nghìn tỉ watt — đủ để đặt loài người ở mức
+    <b>K ≈ 0.73</b>, một nền văn minh Type 0 vẫn đang đốt phần lớn năng lượng lấy từ lòng đất.
+    Để chạm tới Type I, ta cần làm chủ toàn bộ ánh sáng mặt trời rọi xuống Trái Đất —
+    nhiều gấp hàng nghìn lần hiện nay.</p>
+    <div class="figs">
+      <div class="fig"><div class="n">≈ 0.73</div><div class="l">Chỉ số Kardashev của nhân loại</div></div>
+      <div class="fig"><div class="n mono">~10¹³ W</div><div class="l">Công suất loài người dùng hôm nay</div></div>
+      <div class="fig"><div class="n">100–200</div><div class="l">Số năm để đạt Type I (ước tính của Michio Kaku)</div></div>
+      <div class="fig"><div class="n mono">10¹⁰×</div><div class="l">Mỗi nấc thang là một bước nhảy</div></div>
+    </div>
+    <p class="src">Thang Kardashev là một mô hình suy đoán, không phải định luật vật lý. Các cấp IV–VI nằm
+    ngoài tầm kiểm chứng và mang tính giả thuyết. Mốc thời gian là ước tính phổ biến, không phải dự báo chắc chắn.</p>
+  </div></div>
+</section>
+
+<footer>
+  <small>Một trang giải thích tương tác · dựng bằng AI · vũ trụ vẽ bằng &lt;canvas&gt; · 2026</small>
+</footer>
+
+<script>
+'use strict';
+const TAU = Math.PI*2;
+const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+const lerp = (a,b,t)=>a+(b-a)*t;
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const TYPES = [
+  {roman:'0',  name:'Tiền hành tinh', role:'Pre-planetary', K:0.73,
+   tag:'Văn minh sơ khai trên một thế giới',
+   p:'10¹³', accent:'#ff6b35',
+   desc:'Khai thác một phần năng lượng của hành tinh quê hương — đốt than, dầu khí, tách hạt nhân sơ khai. Đây chính là nơi nhân loại đang đứng: thắp sáng được mặt tối của hành tinh, nhưng vẫn lệ thuộc vào nhiên liệu chôn dưới lòng đất.',
+   can:['Điện & internet toàn cầu','Bay vào quỹ đạo gần','Nhiên liệu hoá thạch']},
+  {roman:'I',  name:'Hành tinh', role:'Planetary', K:1,
+   tag:'Làm chủ cả một hành tinh',
+   p:'10¹⁶', accent:'#ffc83a',
+   desc:'Thu trọn năng lượng chạm tới hành tinh mình: toàn bộ ánh nắng, gió, sóng biển, địa nhiệt và cả bão tố. Một nền văn minh Type I điều khiển được khí hậu, thời tiết, động đất — và không còn khái niệm thiếu năng lượng trên thế giới của mình.',
+   can:['Điều khiển khí hậu','Đô thị hành tinh','Hợp hạch nhiệt hạch']},
+  {roman:'II', name:'Sao', role:'Stellar · Dyson', K:2,
+   tag:'Bao trọn năng lượng một ngôi sao',
+   p:'10²⁶', accent:'#9fd4ff',
+   desc:'Dựng nên một Quả cầu Dyson — lớp vỏ hoặc bầy thu năng lượng khổng lồ bao quanh ngôi sao mẹ, hứng gần như toàn bộ ánh sáng nó phát ra. Năng lượng nhiều gấp mười tỉ lần một hành tinh; văn minh này thực tế là bất tử trước mọi khủng hoảng năng lượng.',
+   can:['Quả cầu Dyson','Di dời cả hành tinh','Du hành liên sao']},
+  {roman:'III',name:'Thiên hà', role:'Galactic', K:3,
+   tag:'Khai thác hàng trăm tỉ ngôi sao',
+   p:'10³⁶', accent:'#6d8bff',
+   desc:'Vươn ra toàn bộ thiên hà, thu năng lượng từ hàng trăm tỉ ngôi sao và lỗ đen siêu khối ở trung tâm. Du hành giữa các vì sao trở thành chuyện thường ngày. Loài người, nếu sống sót, có thể mất hàng trăm nghìn năm mới tới được đây.',
+   can:['Đế chế liên sao','Khai thác lỗ đen','Trải khắp Ngân Hà']},
+  {roman:'IV', name:'Vũ trụ', role:'Universal', K:4,
+   tag:'Năng lượng của cả vũ trụ quan sát được',
+   p:'10⁴⁶', accent:'#9b6bff',
+   desc:'Sử dụng năng lượng ở quy mô toàn vũ trụ quan sát được — gồm cả năng lượng tối đang đẩy vũ trụ giãn nở. Một nền văn minh như vậy có thể thao túng các định luật vật lý ở phạm vi rộng lớn không tưởng.',
+   can:['Làm chủ năng lượng tối','Mạng lưới liên thiên hà','Vượt giới hạn ánh sáng?']},
+  {roman:'V',  name:'Đa vũ trụ', role:'Multiversal', K:5,
+   tag:'Vươn ra ngoài vũ trụ của mình',
+   p:'10⁵⁶', accent:'#d65fff',
+   desc:'Không còn bị giam trong một vũ trụ. Văn minh Type V rút năng lượng từ vô số vũ trụ song song trong giả thuyết đa vũ trụ, đi lại giữa chúng như ta bước qua các căn phòng. Hoàn toàn nằm ngoài khả năng kiểm chứng của khoa học hiện nay.',
+   can:['Du hành đa vũ trụ','Sáng tạo vũ trụ con','Ngoài tầm hiểu biết']},
+  {roman:'VI', name:'Siêu việt', role:'Transcendent', K:6,
+   tag:'Làm chủ chính không–thời gian',
+   p:'10⁶⁶', accent:'#ff8fe0',
+   desc:'Năng lượng không còn là giới hạn. Một nền văn minh Type VI nắm trong tay chính cấu trúc của không gian, thời gian và thực tại — gần như toàn năng theo nghĩa vật lý. Với chúng ta, nó không khác gì một vị thần.',
+   can:['Dệt lại không–thời gian','Tạo & xoá vật lý','Toàn năng vật lý']},
+];
+
+const STOPS = ['#ff6b35','#ffc83a','#9fd4ff','#6d8bff','#9b6bff','#d65fff','#ff8fe0'].map(h=>{
+  const n=parseInt(h.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255];
+});
+function accentAt(K){
+  const x=clamp(K,0,6), i=Math.floor(x), f=x-i;
+  const a=STOPS[i], b=STOPS[Math.min(i+1,6)];
+  return [Math.round(lerp(a[0],b[0],f)),Math.round(lerp(a[1],b[1],f)),Math.round(lerp(a[2],b[2],f))];
+}
+const rgb=c=>`rgb(${c[0]},${c[1]},${c[2]})`;
+const rgba=(c,a)=>`rgba(${c[0]},${c[1]},${c[2]},${a})`;
+
+let K=0.73, targetK=0.73, autoMode=false, autoDir=1;
+
+const sky=document.getElementById('sky'), stage=document.getElementById('stage');
+const sg=sky.getContext('2d'), st=stage.getContext('2d');
+let W=0,H=0,DPR=1,starList=[];
+function resize(){
+  DPR=Math.min(devicePixelRatio||1,2);
+  const r=sky.getBoundingClientRect(); W=r.width; H=r.height;
+  for(const c of [sky,stage]){ c.width=W*DPR; c.height=H*DPR; }
+  buildStars();
+}
+function buildStars(){
+  starList=[]; const n=Math.floor(W*H/5200);
+  for(let i=0;i<n;i++) starList.push({x:Math.random()*W,y:Math.random()*H,
+    r:Math.random()<.86?Math.random()*1.1+.3:Math.random()*1.1+1.2,
+    tw:Math.random()*TAU,ts:Math.random()*1.3+.4,
+    warm:Math.random()<.16});
+}
+function drawSky(t){
+  sg.setTransform(DPR,0,0,DPR,0,0);
+  sg.fillStyle='#07060f'; sg.fillRect(0,0,W,H);
+  const ac=accentAt(K);
+  const g=sg.createRadialGradient(W*0.5,H*0.5,0,W*0.5,H*0.5,Math.max(W,H)*0.7);
+  g.addColorStop(0,rgba(ac,.05)); g.addColorStop(1,'rgba(0,0,0,0)');
+  sg.fillStyle=g; sg.fillRect(0,0,W,H);
+  for(const s of starList){
+    const a=reduce?.8:.4+.6*Math.abs(Math.sin(t*0.0007*s.ts+s.tw));
+    sg.fillStyle=s.warm?`rgba(255,210,160,${a*.9})`:`rgba(225,232,255,${a*.85})`;
+    sg.beginPath(); sg.arc(s.x,s.y,s.r,0,TAU); sg.fill();
+  }
+}
+
+let galaxyPts=[], webNodes=[], webEdges=[];
+function buildScenes(){
+  galaxyPts=[];
+  for(let i=0;i<1400;i++){
+    const arm=i%3, t=Math.pow(Math.random(),.62);
+    const ang=t*4.1 + arm*TAU/3 + (Math.random()-.5)*0.5;
+    galaxyPts.push({a:ang,r:t,off:(Math.random()-.5)*0.12,
+      sz:Math.random()*1.3+.4, hot:Math.random()<.3});
+  }
+  webNodes=[]; webEdges=[];
+  for(let i=0;i<26;i++) webNodes.push({x:Math.random()*2-1,y:Math.random()*2-1,s:Math.random()*0.6+0.4});
+  for(let i=0;i<webNodes.length;i++){
+    const a=webNodes[i]; let near=[];
+    for(let j=0;j<webNodes.length;j++) if(j!==i){
+      const d=Math.hypot(a.x-webNodes[j].x,a.y-webNodes[j].y); near.push([d,j]);
+    }
+    near.sort((p,q)=>p[0]-q[0]);
+    for(let k=0;k<2;k++) webEdges.push([i,near[k][1]]);
+  }
+}
+
+function scene(idx, g, cx, cy, R, a, t){
+  if(a<=0.001) return;
+  g.save(); g.globalAlpha=a;
+  const rot = reduce?0:t*0.00018;
+  switch(idx){
+    case 0: {
+      const grd=g.createRadialGradient(cx-R*0.35,cy-R*0.35,R*0.1,cx,cy,R);
+      grd.addColorStop(0,'#12203a'); grd.addColorStop(.7,'#0a1426'); grd.addColorStop(1,'#05080f');
+      g.fillStyle=grd; g.beginPath(); g.arc(cx,cy,R,0,TAU); g.fill();
+      g.save(); g.beginPath(); g.arc(cx,cy,R,0,TAU); g.clip();
+      g.fillStyle='#ff8a3a';
+      let seed=99;
+      const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+      for(let i=0;i<160;i++){
+        const ang=rnd()*TAU, rr=Math.sqrt(rnd())*R;
+        const px=cx+Math.cos(ang)*rr, py=cy+Math.sin(ang)*rr;
+        if(px<cx-R*0.15) continue;
+        const fl=reduce?1:.5+.5*Math.sin(t*0.004+i);
+        g.globalAlpha=a*(.3+.7*fl)*0.9;
+        g.beginPath(); g.arc(px,py,rnd()*1.2+.5,0,TAU); g.fill();
+      }
+      g.restore(); g.globalAlpha=a;
+      const at=g.createRadialGradient(cx,cy,R*0.9,cx,cy,R*1.14);
+      at.addColorStop(0,'rgba(120,160,255,0)'); at.addColorStop(.7,'rgba(120,160,255,.16)'); at.addColorStop(1,'rgba(120,160,255,0)');
+      g.fillStyle=at; g.beginPath(); g.arc(cx,cy,R*1.14,0,TAU); g.fill();
+      break;
+    }
+    case 1: {
+      const ac=accentAt(1);
+      const grd=g.createRadialGradient(cx-R*0.4,cy-R*0.4,R*0.1,cx,cy,R);
+      grd.addColorStop(0,'#7fb6ff'); grd.addColorStop(.55,'#3f74d8'); grd.addColorStop(1,'#16306a');
+      g.fillStyle=grd; g.beginPath(); g.arc(cx,cy,R,0,TAU); g.fill();
+      g.save(); g.beginPath(); g.arc(cx,cy,R,0,TAU); g.clip();
+      g.fillStyle='rgba(70,160,110,.55)';
+      let seed=7; const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+      for(let i=0;i<7;i++){
+        g.beginPath();
+        const bx=cx+(rnd()-.5)*R*1.4, by=cy+(rnd()-.5)*R*1.4;
+        g.ellipse(bx,by,R*(.2+rnd()*.3),R*(.14+rnd()*.2),rnd()*TAU,0,TAU); g.fill();
+      }
+      g.strokeStyle=rgba(ac,.5); g.lineWidth=1;
+      for(let k=-2;k<=2;k++){
+        g.beginPath();
+        g.ellipse(cx,cy,R*0.96,R*0.96*Math.abs(Math.cos(k*0.5+rot*4))+2,0,0,TAU); g.stroke();
+      }
+      for(let k=0;k<6;k++){
+        const ang=k/6*TAU+rot*4;
+        g.beginPath(); g.ellipse(cx,cy,R*0.96*Math.abs(Math.sin(ang))+2,R*0.96,0,0,TAU); g.stroke();
+      }
+      g.restore();
+      const at=g.createRadialGradient(cx,cy,R*0.88,cx,cy,R*1.2);
+      at.addColorStop(0,'rgba(120,200,255,0)'); at.addColorStop(.6,rgba(ac,.25)); at.addColorStop(1,'rgba(120,200,255,0)');
+      g.fillStyle=at; g.beginPath(); g.arc(cx,cy,R*1.2,0,TAU); g.fill();
+      break;
+    }
+    case 2: {
+      const star=g.createRadialGradient(cx,cy,0,cx,cy,R*0.5);
+      star.addColorStop(0,'#fff8e0'); star.addColorStop(.5,'#ffe49a'); star.addColorStop(1,'rgba(255,180,60,0)');
+      g.fillStyle=star; g.beginPath(); g.arc(cx,cy,R*0.95,0,TAU); g.fill();
+      g.beginPath(); g.arc(cx,cy,R*0.26,0,TAU); g.fillStyle='#fffef5'; g.fill();
+      const ac=accentAt(2);
+      for(let ring=0;ring<5;ring++){
+        const rr=R*(0.5+ring*0.11);
+        const tilt=0.3+ring*0.18;
+        g.strokeStyle=rgba(ac,.34); g.lineWidth=1;
+        g.beginPath(); g.ellipse(cx,cy,rr,rr*Math.abs(Math.cos(tilt)),ring*0.6+rot*6,0,TAU); g.stroke();
+        const np=18+ring*4;
+        for(let i=0;i<np;i++){
+          const ang=i/np*TAU + ring*0.6 + rot*6*(ring%2?1:-1);
+          const ex=Math.cos(ang)*rr, ey=Math.sin(ang)*rr*Math.abs(Math.cos(tilt));
+          g.fillStyle=rgba(ac,.9);
+          g.fillRect(cx+ex-1.4,cy+ey-1.4,2.8,2.8);
+        }
+      }
+      break;
+    }
+    case 3: {
+      const core=g.createRadialGradient(cx,cy,0,cx,cy,R*0.5);
+      const ac=accentAt(3);
+      core.addColorStop(0,'#fff4e0'); core.addColorStop(.4,rgba(ac,.5)); core.addColorStop(1,'rgba(0,0,0,0)');
+      g.fillStyle=core; g.beginPath(); g.arc(cx,cy,R*0.55,0,TAU); g.fill();
+      for(const p of galaxyPts){
+        const ang=p.a+rot*2.4*(1.2-p.r)+p.off;
+        const rad=p.r*R*0.98;
+        const px=cx+Math.cos(ang)*rad, py=cy+Math.sin(ang)*rad*0.82;
+        g.globalAlpha=a*(0.5+0.5*(1-p.r));
+        g.fillStyle=p.hot?rgba(ac,.95):'rgba(210,224,255,.8)';
+        g.beginPath(); g.arc(px,py,p.sz,0,TAU); g.fill();
+      }
+      break;
+    }
+    case 4: {
+      const ac=accentAt(4);
+      const sc=R*0.92;
+      g.strokeStyle=rgba(ac,.18); g.lineWidth=1;
+      for(const e of webEdges){
+        const A=webNodes[e[0]],B=webNodes[e[1]];
+        g.beginPath(); g.moveTo(cx+A.x*sc,cy+A.y*sc); g.lineTo(cx+B.x*sc,cy+B.y*sc); g.stroke();
+      }
+      for(const nd of webNodes){
+        const px=cx+nd.x*sc, py=cy+nd.y*sc, rr=nd.s*7;
+        const gg=g.createRadialGradient(px,py,0,px,py,rr*2.4);
+        gg.addColorStop(0,rgba(ac,.95)); gg.addColorStop(.4,rgba(ac,.4)); gg.addColorStop(1,'rgba(0,0,0,0)');
+        g.fillStyle=gg; g.beginPath(); g.arc(px,py,rr*2.4,0,TAU); g.fill();
+        g.fillStyle='#fff'; g.beginPath(); g.arc(px,py,rr*0.4,0,TAU); g.fill();
+      }
+      break;
+    }
+    case 5: {
+      const ac=accentAt(5);
+      const bub=[[-.42,-.18,.5],[.34,.1,.62],[.06,.46,.4],[-.16,.34,.34],[.5,-.4,.36]];
+      for(let bi=0;bi<bub.length;bi++){
+        const bx=bub[bi][0], by=bub[bi][1], bs=bub[bi][2];
+        const px=cx+bx*R, py=cy+by*R, rr=bs*R;
+        const breathe=reduce?1:1+0.04*Math.sin(t*0.0015+bi*1.7);
+        const gg=g.createRadialGradient(px,py,rr*0.2,px,py,rr*breathe);
+        gg.addColorStop(0,rgba(ac,.04)); gg.addColorStop(.82,rgba(ac,.1)); gg.addColorStop(.92,rgba(ac,.5)); gg.addColorStop(1,'rgba(0,0,0,0)');
+        g.fillStyle=gg; g.beginPath(); g.arc(px,py,rr*breathe,0,TAU); g.fill();
+        g.save(); g.beginPath(); g.arc(px,py,rr*0.9,0,TAU); g.clip();
+        let seed=bi*131+5; const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280;};
+        g.fillStyle=rgba(ac,.7);
+        for(let i=0;i<22;i++){ g.beginPath(); g.arc(px+(rnd()-.5)*rr*1.5,py+(rnd()-.5)*rr*1.5,rnd()*1.3+.4,0,TAU); g.fill(); }
+        g.restore();
+      }
+      break;
+    }
+    case 6: {
+      const ac=accentAt(6);
+      g.strokeStyle=rgba(ac,.32); g.lineWidth=1;
+      const N=11, span=R*1.25;
+      const warp=(gx,gy)=>{ const d=Math.hypot(gx,gy)||.001; const pull=Math.exp(-d*d/(R*R*0.4))*R*0.55; return [gx-gx/d*pull, gy-gy/d*pull]; };
+      for(let i=0;i<=N;i++){
+        g.beginPath();
+        for(let j=0;j<=N;j++){
+          const gx=(-1+2*i/N)*span, gy=(-1+2*j/N)*span;
+          const wob=reduce?0:Math.sin(t*0.001+i*0.6+j*0.4)*4;
+          const w=warp(gx,gy+wob);
+          j===0?g.moveTo(cx+w[0],cy+w[1]):g.lineTo(cx+w[0],cy+w[1]);
+        }
+        g.stroke();
+        g.beginPath();
+        for(let j=0;j<=N;j++){
+          const gx=(-1+2*j/N)*span, gy=(-1+2*i/N)*span;
+          const wob=reduce?0:Math.cos(t*0.001+i*0.5+j*0.3)*4;
+          const w=warp(gx+wob,gy);
+          j===0?g.moveTo(cx+w[0],cy+w[1]):g.lineTo(cx+w[0],cy+w[1]);
+        }
+        g.stroke();
+      }
+      const cg=g.createRadialGradient(cx,cy,0,cx,cy,R*0.7);
+      cg.addColorStop(0,'#ffffff'); cg.addColorStop(.18,rgba(ac,.9)); cg.addColorStop(.5,rgba(ac,.18)); cg.addColorStop(1,'rgba(0,0,0,0)');
+      g.fillStyle=cg; g.beginPath(); g.arc(cx,cy,R*0.7,0,TAU); g.fill();
+      break;
+    }
+  }
+  g.restore();
+}
+
+function drawStage(t){
+  st.setTransform(DPR,0,0,DPR,0,0);
+  st.clearRect(0,0,W,H);
+  const cx=W*(W<760?0.5:0.62), cy=H*0.46, R=Math.min(W,H)*0.26;
+  const x=clamp(K,0,6), i=Math.floor(x), f=x-i;
+  const lo=i, hi=Math.min(i+1,6);
+  if(lo===hi){ scene(lo,st,cx,cy,R,1,t); }
+  else { scene(lo,st,cx,cy,R,1-f,t); scene(hi,st,cx,cy,R,f,t); }
+}
+
+function fmtExp(K){ const e=Math.round(6+10*K); return `10<sup>${e}</sup> W`; }
+function relText(K){
+  const e=6+10*K, rel=Math.round(e-13.3);
+  if(rel<=0) return '≈ 1×';
+  return `≈ 10<sup>${rel}</sup>×`;
+}
+const $=id=>document.getElementById(id);
+function updateReadout(){
+  const ac=accentAt(K);
+  document.documentElement.style.setProperty('--accent',rgb(ac));
+  document.documentElement.style.setProperty('--accent-soft',rgba(ac,.18));
+  const ti=clamp(Math.round(K),0,6), T=TYPES[ti];
+  $('rRoman').textContent=T.roman;
+  $('rName').textContent=T.name;
+  $('rTag').textContent=T.tag;
+  $('rDesc').textContent=T.desc;
+  $('rK').textContent=K.toFixed(2);
+  $('rP').innerHTML=fmtExp(K);
+  $('rRel').innerHTML=relText(K);
+  const pct=clamp(K,0,6)/6*100;
+  $('handle').style.left=pct+'%';
+  $('handle').style.background=rgb(ac);
+  $('handle').setAttribute('aria-valuenow',K.toFixed(2));
+  $('trackFill').style.width=pct+'%';
+}
+
+const dial=$('dial'), handle=$('handle');
+function setKFromX(clientX){
+  const r=dial.getBoundingClientRect();
+  targetK=K=clamp((clientX-r.left)/r.width*6,0,6);
+  autoMode=false; updateReadout();
+}
+let dragging=false;
+handle.addEventListener('pointerdown',e=>{dragging=true;handle.setPointerCapture(e.pointerId);autoMode=false;});
+handle.addEventListener('pointermove',e=>{if(dragging)setKFromX(e.clientX);});
+handle.addEventListener('pointerup',()=>dragging=false);
+handle.addEventListener('pointercancel',()=>dragging=false);
+dial.addEventListener('pointerdown',e=>{ if(e.target===handle)return; setKFromX(e.clientX); });
+handle.addEventListener('keydown',e=>{
+  const step=e.shiftKey?0.5:0.05; let h=false;
+  if(e.key==='ArrowRight'||e.key==='ArrowUp'){targetK=K=clamp(K+step,0,6);h=true;}
+  if(e.key==='ArrowLeft'||e.key==='ArrowDown'){targetK=K=clamp(K-step,0,6);h=true;}
+  if(e.key==='Home'){targetK=K=0;h=true;} if(e.key==='End'){targetK=K=6;h=true;}
+  if(h){e.preventDefault();autoMode=false;updateReadout();}
+});
+
+const ticksEl=$('ticks');
+TYPES.forEach((T,i)=>{
+  const el=document.createElement('div');
+  el.className='tick'; el.style.left=(T.K/6*100)+'%';
+  if(i===0) el.style.left='0%';
+  el.innerHTML=`<i></i><b>${T.roman}</b>`;
+  el.title=`Type ${T.roman} — ${T.name}`;
+  el.addEventListener('click',()=>{ targetK=T.K; autoMode=false; });
+  ticksEl.appendChild(el);
+});
+$('youMark').style.left=(0.73/6*100)+'%';
+
+$('play').addEventListener('click',e=>{
+  autoMode=!autoMode;
+  if(autoMode){ autoDir=1; if(K>=5.98)K=0; e.target.textContent='⏸ Dừng'; }
+  else e.target.textContent='▶ Tự động thăng cấp';
+});
+
+const rungsEl=$('rungs');
+TYPES.forEach(T=>{
+  const c=accentAt(T.K);
+  const el=document.createElement('div');
+  el.className='rung';
+  el.style.setProperty('--rc',rgb(c));
+  el.style.setProperty('--rc-soft',rgba(c,.08));
+  el.style.setProperty('--fill',(T.K/6*100)+'%');
+  el.innerHTML=`
+    <div class="idx">
+      <div class="r">${T.roman}</div>
+      <div class="p">${T.p} W</div>
+    </div>
+    <div class="body">
+      <h3>${T.name}</h3>
+      <div class="role">Type ${T.roman} · ${T.role}</div>
+      <p>${T.desc}</p>
+      <div class="can">${T.can.map(x=>`<span>${x}</span>`).join('')}</div>
+      <div class="bar"><i></i></div>
+    </div>`;
+  el.addEventListener('click',()=>{
+    targetK=T.K; autoMode=false; $('play').textContent='▶ Tự động thăng cấp';
+    document.querySelector('.hero').scrollIntoView({behavior:reduce?'auto':'smooth'});
+  });
+  rungsEl.appendChild(el);
+});
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target);} });
+},{threshold:0.25});
+document.querySelectorAll('.rung').forEach(r=>io.observe(r));
+
+resize(); buildScenes(); updateReadout();
+addEventListener('resize',resize);
+let last=performance.now();
+function frame(now){
+  const dt=Math.min((now-last)/1000,1/24); last=now;
+  if(autoMode){
+    K+=autoDir*dt*0.42;
+    if(K>=6){K=6;autoMode=false;$('play').textContent='▶ Tự động thăng cấp';}
+    targetK=K; updateReadout();
+  } else if(Math.abs(targetK-K)>0.001){
+    K+=(targetK-K)*Math.min(1,dt*5); updateReadout();
+  }
+  drawSky(now); drawStage(now);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
