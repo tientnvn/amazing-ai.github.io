@@ -51,7 +51,7 @@ html,body{height:100%;overflow:hidden;background:var(--color-bg);color:var(--col
 
 /* ---------- Star navigation ---------- */
 .star-nav{
-  position:fixed;left:28px;top:50%;transform:translateY(-50%);z-index:20;
+  position:fixed;left:104px;top:50%;transform:translateY(-50%);z-index:20;
   display:flex;flex-direction:column;gap:2px;max-height:70vh;overflow-y:auto;
   scrollbar-width:none;
 }
@@ -201,6 +201,99 @@ html,body{height:100%;overflow:hidden;background:var(--color-bg);color:var(--col
 </style>
 </head>
 <body>
+
+<!-- ================= ASTERISM SITE NAV ================= -->
+<div class="ast-rail" id="astRail">
+  <a class="ast-rail-logo" href="index.html" aria-label="Amazing AI">
+    <span class="ast-rail-star">✦</span>
+    <span class="ast-rail-word">amazing<i>·</i>ai</span>
+  </a>
+  <div class="ast-rail-links" id="astRailLinks">
+    <a href="index.html" data-page="index.html" title="Trang chủ"><span class="ast-ico">⌂</span><span class="ast-txt">Trang chủ</span></a>
+    <a href="thuy-mac.html" data-page="thuy-mac.html" title="Thủy Mặc"><span class="ast-ico">✎</span><span class="ast-txt">Thủy Mặc</span></a>
+    <a href="dai-chien-ran-san-ho.html" data-page="dai-chien-ran-san-ho.html" title="Đại Chiến Rạn San Hô"><span class="ast-ico">≈</span><span class="ast-txt">Đại Chiến Rạn San Hô</span></a>
+    <a href="he-sao.html" data-page="he-sao.html" title="Hệ Sao"><span class="ast-ico">◎</span><span class="ast-txt">Hệ Sao</span></a>
+    <a href="thang-kardashev.html" data-page="thang-kardashev.html" title="Thang Kardashev"><span class="ast-ico">△</span><span class="ast-txt">Thang Kardashev</span></a>
+    <a href="asterism-summer-triangle.html" data-page="asterism-summer-triangle.html" title="Tam Giác Mùa Hè"><span class="ast-ico">✶</span><span class="ast-txt">Tam Giác Mùa Hè</span></a>
+  </div>
+  <button class="ast-rail-toggle" id="astRailToggle" aria-expanded="false" aria-label="Mở rộng menu">
+    <span class="ast-rail-chevron">›</span>
+  </button>
+</div>
+<style>
+  .ast-rail{
+    position:fixed;left:0;top:0;bottom:0;z-index:9999;width:60px;
+    display:flex;flex-direction:column;
+    background:#000;border-right:1px solid #1A1A1A;
+    box-shadow:6px 0 26px rgba(0,0,0,.4);
+    transition:width .32s cubic-bezier(.2,.8,.2,1);
+    overflow:hidden;font-family:'Inter','Be Vietnam Pro',sans-serif;
+  }
+  .ast-rail.expanded{width:236px}
+  .ast-rail-logo{
+    flex:none;display:flex;align-items:center;gap:11px;
+    padding:18px 0 16px 20px;border-bottom:1px solid #1A1A1A;
+    text-decoration:none;white-space:nowrap;
+  }
+  .ast-rail-star{color:#CC44CC;font-size:17px;flex:none;text-shadow:0 0 10px rgba(204,68,204,.5)}
+  .ast-rail-word{
+    font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;color:#fff;
+    font-size:15px;letter-spacing:.01em;opacity:0;transition:opacity .22s ease;
+  }
+  .ast-rail-word i{color:#CC44CC;font-style:normal}
+  .ast-rail.expanded .ast-rail-word{opacity:1}
+  .ast-rail-links{display:flex;flex-direction:column;flex:1;padding:10px 0;overflow-y:auto}
+  .ast-rail-links a{
+    display:flex;align-items:center;gap:14px;padding:12px 0 12px 20px;
+    text-decoration:none;color:#888;border-left:2px solid transparent;white-space:nowrap;
+    transition:color .2s ease,background .2s ease,border-color .2s ease;
+  }
+  .ast-ico{flex:none;width:18px;font-size:15px;text-align:center;color:inherit}
+  .ast-txt{
+    font-family:'Inter','Be Vietnam Pro',sans-serif;font-size:13px;letter-spacing:.02em;
+    opacity:0;transition:opacity .2s ease;
+  }
+  .ast-rail.expanded .ast-txt{opacity:1}
+  .ast-rail-links a:hover{color:#fff;background:#0D0D0D}
+  .ast-rail-links a.active{color:#fff;border-left-color:#CC44CC;background:#0D0D0D}
+  .ast-rail-links a.active .ast-ico{color:#CC44CC}
+  .ast-rail-toggle{
+    flex:none;appearance:none;background:transparent;border:none;border-top:1px solid #1A1A1A;
+    color:#888;cursor:pointer;padding:16px 0;font-size:15px;
+    display:flex;align-items:center;justify-content:center;
+    transition:color .2s ease;
+  }
+  .ast-rail-toggle:hover{color:#CC44CC}
+  .ast-rail-chevron{display:inline-block;transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+  .ast-rail.expanded .ast-rail-chevron{transform:rotate(180deg)}
+  @media (prefers-reduced-motion:reduce){ .ast-rail,.ast-rail-word,.ast-txt,.ast-rail-chevron{transition:none} }
+</style>
+<script>
+(function(){
+  var inIframe=false;
+  try{ inIframe = window.self !== window.top; }catch(e){ inIframe = true; }
+  if(inIframe){ var r=document.getElementById('astRail'); if(r) r.remove(); return; }
+  var rail=document.getElementById('astRail');
+  var toggle=document.getElementById('astRailToggle');
+  var links=document.getElementById('astRailLinks');
+  var here=location.pathname.split('/').pop()||'index.html';
+  links.querySelectorAll('a').forEach(function(a){
+    if(a.getAttribute('data-page')===here) a.classList.add('active');
+  });
+  var KEY='astRailExpanded';
+  function setExpanded(open){
+    rail.classList.toggle('expanded', open);
+    toggle.setAttribute('aria-expanded', String(open));
+    try{ localStorage.setItem(KEY, open ? '1':'0'); }catch(e){}
+  }
+  var saved=null;
+  try{ saved=localStorage.getItem(KEY); }catch(e){}
+  setExpanded(saved==='1');
+  toggle.addEventListener('click', function(){
+    setExpanded(!rail.classList.contains('expanded'));
+  });
+})();
+</script>
 <canvas id="scene"></canvas>
 
 <header class="header">
