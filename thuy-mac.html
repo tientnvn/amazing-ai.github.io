@@ -24,7 +24,7 @@
   .ui{position:fixed;inset:0;pointer-events:none;z-index:2}
 
   /* ---------- title ---------- */
-  .masthead{position:absolute;top:clamp(20px,4vh,44px);left:calc(76px + clamp(20px,4vw,52px));max-width:min(78vw,460px)}
+  .masthead{position:absolute;top:calc(56px + clamp(20px,4vh,44px));left:clamp(20px,4vw,52px);max-width:min(78vw,460px)}
   .masthead h1{
     font-family:'Playfair Display',serif;font-weight:700;
     font-size:clamp(2.4rem,6.5vw,4.6rem);line-height:.95;letter-spacing:-.015em;
@@ -54,7 +54,7 @@
 
   /* ---------- ink stones ---------- */
   .stones{
-    position:absolute;left:calc(76px + clamp(20px,4vw,52px));bottom:clamp(20px,4vh,40px);
+    position:absolute;left:clamp(20px,4vw,52px);bottom:clamp(20px,4vh,40px);
     display:flex;align-items:center;gap:18px;pointer-events:auto;
     animation:rise 1.4s cubic-bezier(.2,.8,.2,1) both 1s;
   }
@@ -105,7 +105,7 @@
   .seal-wrap small{font-size:.6rem;letter-spacing:.18em;color:var(--faint);text-transform:uppercase}
 
   .poem{
-    position:absolute;top:clamp(24px,4.5vh,48px);right:clamp(20px,4vw,52px);
+    position:absolute;top:calc(56px + clamp(24px,4.5vh,48px));right:clamp(20px,4vw,52px);
     font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(.85rem,1.7vw,1.05rem);
     color:var(--faint);text-align:right;line-height:1.5;max-width:200px;
     animation:rise 1.6s cubic-bezier(.2,.8,.2,1) both 1.4s;
@@ -129,94 +129,84 @@
 <body>
 
 <!-- ================= ASTERISM SITE NAV ================= -->
-<div class="ast-rail" id="astRail">
-  <a class="ast-rail-logo" href="index.html" aria-label="Amazing AI">
-    <span class="ast-rail-star">✦</span>
-    <span class="ast-rail-word">amazing<i>·</i>ai</span>
+<div class="ast-bar" id="astBar">
+  <a class="ast-bar-logo" href="index.html" aria-label="Amazing AI">
+    <span class="ast-bar-star">✦</span>
+    <span class="ast-bar-word">amazing<i>·</i>ai</span>
   </a>
-  <div class="ast-rail-links" id="astRailLinks">
-    <a href="index.html" data-page="index.html" title="Trang chủ"><span class="ast-ico">⌂</span><span class="ast-txt">Trang chủ</span></a>
-    <a href="thuy-mac.html" data-page="thuy-mac.html" title="Thủy Mặc"><span class="ast-ico">✎</span><span class="ast-txt">Thủy Mặc</span></a>
-    <a href="dai-chien-ran-san-ho.html" data-page="dai-chien-ran-san-ho.html" title="Đại Chiến Rạn San Hô"><span class="ast-ico">≈</span><span class="ast-txt">Đại Chiến Rạn San Hô</span></a>
-    <a href="he-sao.html" data-page="he-sao.html" title="Hệ Sao"><span class="ast-ico">◎</span><span class="ast-txt">Hệ Sao</span></a>
-    <a href="thang-kardashev.html" data-page="thang-kardashev.html" title="Thang Kardashev"><span class="ast-ico">△</span><span class="ast-txt">Thang Kardashev</span></a>
-    <a href="asterism-summer-triangle.html" data-page="asterism-summer-triangle.html" title="Tam Giác Mùa Hè"><span class="ast-ico">✶</span><span class="ast-txt">Tam Giác Mùa Hè</span></a>
+  <div class="ast-bar-links" id="astBarLinks">
+    <a href="index.html" data-page="index.html">Trang chủ</a>
+    <a href="thuy-mac.html" data-page="thuy-mac.html">Thủy Mặc</a>
+    <a href="dai-chien-ran-san-ho.html" data-page="dai-chien-ran-san-ho.html">Đại Chiến Rạn San Hô</a>
+    <a href="he-sao.html" data-page="he-sao.html">Hệ Sao</a>
+    <a href="thang-kardashev.html" data-page="thang-kardashev.html">Thang Kardashev</a>
+    <a href="asterism-summer-triangle.html" data-page="asterism-summer-triangle.html">Tam Giác Mùa Hè</a>
   </div>
-  <button class="ast-rail-toggle" id="astRailToggle" aria-expanded="false" aria-label="Mở rộng menu">
-    <span class="ast-rail-chevron">›</span>
+  <button class="ast-bar-toggle" id="astBarToggle" aria-expanded="false" aria-controls="astBarLinks" aria-label="Mở menu điều hướng">
+    <span></span><span></span><span></span>
   </button>
 </div>
 <style>
-  .ast-rail{
-    position:fixed;left:0;top:0;bottom:0;z-index:9999;width:60px;
-    display:flex;flex-direction:column;
-    background:#000;border-right:1px solid #1A1A1A;
-    box-shadow:6px 0 26px rgba(0,0,0,.4);
-    transition:width .32s cubic-bezier(.2,.8,.2,1);
-    overflow:hidden;font-family:'Inter','Be Vietnam Pro',sans-serif;
+  .ast-bar{
+    position:fixed;top:0;left:0;right:0;height:56px;z-index:9999;
+    display:flex;align-items:center;justify-content:space-between;
+    background:#000;border-bottom:1px solid #1A1A1A;
+    padding:0 18px;font-family:'Inter','Be Vietnam Pro',sans-serif;
   }
-  .ast-rail.expanded{width:236px}
-  .ast-rail-logo{
-    flex:none;display:flex;align-items:center;gap:11px;
-    padding:18px 0 16px 20px;border-bottom:1px solid #1A1A1A;
-    text-decoration:none;white-space:nowrap;
+  .ast-bar-logo{
+    display:flex;align-items:center;gap:9px;text-decoration:none;flex:none;
   }
-  .ast-rail-star{color:#CC44CC;font-size:17px;flex:none;text-shadow:0 0 10px rgba(204,68,204,.5)}
-  .ast-rail-word{
+  .ast-bar-star{color:#CC44CC;font-size:16px;text-shadow:0 0 10px rgba(204,68,204,.5)}
+  .ast-bar-word{
     font-family:'Cormorant Garamond',Georgia,serif;font-weight:600;color:#fff;
-    font-size:15px;letter-spacing:.01em;opacity:0;transition:opacity .22s ease;
+    font-size:15px;letter-spacing:.01em;white-space:nowrap;
   }
-  .ast-rail-word i{color:#CC44CC;font-style:normal}
-  .ast-rail.expanded .ast-rail-word{opacity:1}
-  .ast-rail-links{display:flex;flex-direction:column;flex:1;padding:10px 0;overflow-y:auto}
-  .ast-rail-links a{
-    display:flex;align-items:center;gap:14px;padding:12px 0 12px 20px;
-    text-decoration:none;color:#888;border-left:2px solid transparent;white-space:nowrap;
-    transition:color .2s ease,background .2s ease,border-color .2s ease;
+  .ast-bar-word i{color:#CC44CC;font-style:normal}
+  .ast-bar-links{display:flex;align-items:center;gap:22px;height:100%}
+  .ast-bar-links a{
+    display:flex;align-items:center;height:100%;padding:0 2px;
+    text-decoration:none;color:#888;font-size:12px;letter-spacing:.06em;
+    text-transform:uppercase;white-space:nowrap;border-bottom:2px solid transparent;
+    transition:color .2s ease,border-color .2s ease;
   }
-  .ast-ico{flex:none;width:18px;font-size:15px;text-align:center;color:inherit}
-  .ast-txt{
-    font-family:'Inter','Be Vietnam Pro',sans-serif;font-size:13px;letter-spacing:.02em;
-    opacity:0;transition:opacity .2s ease;
+  .ast-bar-links a:hover{color:#fff}
+  .ast-bar-links a.active{color:#fff;border-bottom-color:#CC44CC}
+  .ast-bar-toggle{
+    display:none;flex:none;appearance:none;background:transparent;border:none;
+    cursor:pointer;width:32px;height:32px;flex-direction:column;align-items:center;
+    justify-content:center;gap:5px;
   }
-  .ast-rail.expanded .ast-txt{opacity:1}
-  .ast-rail-links a:hover{color:#fff;background:#0D0D0D}
-  .ast-rail-links a.active{color:#fff;border-left-color:#CC44CC;background:#0D0D0D}
-  .ast-rail-links a.active .ast-ico{color:#CC44CC}
-  .ast-rail-toggle{
-    flex:none;appearance:none;background:transparent;border:none;border-top:1px solid #1A1A1A;
-    color:#888;cursor:pointer;padding:16px 0;font-size:15px;
-    display:flex;align-items:center;justify-content:center;
-    transition:color .2s ease;
+  .ast-bar-toggle span{width:18px;height:1.5px;background:#888;transition:background .2s ease}
+  .ast-bar-toggle:hover span{background:#fff}
+  @media (max-width:760px){
+    .ast-bar-toggle{display:flex}
+    .ast-bar-links{
+      position:fixed;top:56px;left:0;right:0;z-index:9998;
+      flex-direction:column;align-items:stretch;height:auto;gap:0;
+      background:#000;border-bottom:1px solid #1A1A1A;
+      max-height:0;overflow:hidden;transition:max-height .3s ease;
+    }
+    .ast-bar.open .ast-bar-links{max-height:60vh;overflow-y:auto}
+    .ast-bar-links a{height:auto;padding:14px 18px;border-bottom:1px solid #1A1A1A;border-left:2px solid transparent}
+    .ast-bar-links a.active{border-bottom-color:#1A1A1A;border-left-color:#CC44CC}
   }
-  .ast-rail-toggle:hover{color:#CC44CC}
-  .ast-rail-chevron{display:inline-block;transition:transform .32s cubic-bezier(.2,.8,.2,1)}
-  .ast-rail.expanded .ast-rail-chevron{transform:rotate(180deg)}
-  @media (prefers-reduced-motion:reduce){ .ast-rail,.ast-rail-word,.ast-txt,.ast-rail-chevron{transition:none} }
+  @media (prefers-reduced-motion:reduce){ .ast-bar-links{transition:none} }
 </style>
 <script>
 (function(){
   var inIframe=false;
   try{ inIframe = window.self !== window.top; }catch(e){ inIframe = true; }
-  if(inIframe){ var r=document.getElementById('astRail'); if(r) r.remove(); return; }
-  var rail=document.getElementById('astRail');
-  var toggle=document.getElementById('astRailToggle');
-  var links=document.getElementById('astRailLinks');
+  if(inIframe){ var r=document.getElementById('astBar'); if(r) r.remove(); return; }
+  var bar=document.getElementById('astBar');
+  var toggle=document.getElementById('astBarToggle');
+  var links=document.getElementById('astBarLinks');
   var here=location.pathname.split('/').pop()||'index.html';
   links.querySelectorAll('a').forEach(function(a){
     if(a.getAttribute('data-page')===here) a.classList.add('active');
   });
-  var KEY='astRailExpanded';
-  function setExpanded(open){
-    rail.classList.toggle('expanded', open);
-    toggle.setAttribute('aria-expanded', String(open));
-    try{ localStorage.setItem(KEY, open ? '1':'0'); }catch(e){}
-  }
-  var saved=null;
-  try{ saved=localStorage.getItem(KEY); }catch(e){}
-  setExpanded(saved==='1');
   toggle.addEventListener('click', function(){
-    setExpanded(!rail.classList.contains('expanded'));
+    var open=bar.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(open));
   });
 })();
 </script>
