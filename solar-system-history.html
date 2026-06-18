@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lược Sử Hệ Mặt Trời — 4.6 Tỷ Năm</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #020612;
+    --nebula1: #0a0e2e;
+    --nebula2: #0d1b3e;
+    --gold: #f5c842;
+    --orange: #ff7a2f;
+    --blue: #4fa3e0;
+    --teal: #2dd4bf;
+    --red: #ef4444;
+    --purple: #a855f7;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --line: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Be Vietnam Pro', sans-serif;
+    font-size: 15px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── Starfield ── */
+  #stars-canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+    background: radial-gradient(ellipse 80% 60% at 50% 40%, rgba(79,163,224,0.12) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 30% 60%, rgba(168,85,247,0.08) 0%, transparent 60%);
+  }
+
+  .hero-eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 20px;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    background: linear-gradient(135deg, #fff 0%, #c0d8f5 40%, var(--gold) 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+  }
+
+  .hero-sub {
+    max-width: 580px;
+    color: var(--muted);
+    font-size: 1.05rem;
+    margin-bottom: 48px;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 56px;
+  }
+
+  .hero-stat { text-align: center; }
+  .hero-stat .num {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--gold);
+  }
+  .hero-stat .lbl {
+    font-size: 0.78rem;
+    color: var(--muted);
+    letter-spacing: 0.05em;
+  }
+
+  .scroll-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    animation: bounce 2s infinite;
+  }
+  .scroll-hint svg { opacity: 0.5; }
+
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(8px); }
+  }
+
+  /* ── Solar System Orbits (decorative) ── */
+  .orbits-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .orbit-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.04);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    animation: spinOrbit linear infinite;
+  }
+
+  @keyframes spinOrbit {
+    from { transform: translate(-50%,-50%) rotate(0deg); }
+    to { transform: translate(-50%,-50%) rotate(360deg); }
+  }
+
+  /* ── Timeline ── */
+  .section {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 24px 120px;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 64px;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 40px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, transparent, var(--blue) 5%, var(--purple) 50%, var(--orange) 90%, transparent);
+  }
+
+  .era {
+    position: relative;
+    margin-bottom: 64px;
+    opacity: 0;
+    transform: translateX(-24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .era.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .era-dot {
+    position: absolute;
+    left: -33px;
+    top: 6px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .era-dot::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  .era-time {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .era-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+
+  .era-body {
+    color: var(--muted);
+    font-size: 0.94rem;
+    line-height: 1.8;
+    max-width: 660px;
+  }
+
+  .era-tag {
+    display: inline-block;
+    margin-top: 14px;
+    padding: 4px 12px;
+    border-radius: 99px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* color themes */
+  .era.c-blue   .era-dot, .era.c-blue   .era-time { color: var(--blue); }
+  .era.c-gold   .era-dot, .era.c-gold   .era-time { color: var(--gold); }
+  .era.c-orange .era-dot, .era.c-orange .era-time { color: var(--orange); }
+  .era.c-teal   .era-dot, .era.c-teal   .era-time { color: var(--teal); }
+  .era.c-red    .era-dot, .era.c-red    .era-time { color: var(--red); }
+  .era.c-purple .era-dot, .era.c-purple .era-time { color: var(--purple); }
+  .era.c-white  .era-dot, .era.c-white  .era-time { color: #fff; }
+
+  /* ── Fact Cards ── */
+  .facts-grid {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto 120px;
+    padding: 0 24px;
+  }
+
+  .fact-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 24px;
+    transition: border-color 0.3s, background 0.3s;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease, border-color 0.3s, background 0.3s;
+  }
+  .fact-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .fact-card:hover {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.18);
+  }
+
+  .fact-icon {
+    font-size: 2rem;
+    margin-bottom: 12px;
+  }
+  .fact-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .fact-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* ── Closing quote ── */
+  .closing {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 80px 24px 120px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .closing blockquote {
+    font-size: 1.25rem;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--muted);
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .closing blockquote strong {
+    color: var(--gold);
+    font-style: normal;
+    font-weight: 600;
+  }
+  .closing cite {
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(148,163,184,0.5);
+  }
+
+  /* ── Planet canvas ── */
+  #planet-canvas {
+    position: relative;
+    z-index: 1;
+    display: block;
+    margin: 0 auto;
+    width: 100%;
+    max-width: 900px;
+    height: 200px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="orbits-container" aria-hidden="true" id="orbits"></div>
+
+  <p class="hero-eyebrow">Hành trình vũ trụ</p>
+  <h1>Lược Sử 4.6 Tỷ Năm<br>Hình Thành Hệ Mặt Trời</h1>
+  <p class="hero-sub">Từ đám mây khí bụi khổng lồ đến ngôi nhà của sự sống — một hành trình dài qua lửa, va chạm, và thời gian vô tận.</p>
+
+  <div class="hero-stats">
+    <div class="hero-stat">
+      <span class="num">4.6 tỷ</span>
+      <span class="lbl">Năm tuổi</span>
+    </div>
+    <div class="hero-stat">
+      <span class="num">8</span>
+      <span class="lbl">Hành tinh</span>
+    </div>
+    <div class="hero-stat">
+      <span class="num">99.86%</span>
+      <span class="lbl">Khối lượng Mặt Trời</span>
+    </div>
+    <div class="hero-stat">
+      <span class="num">~200</span>
+      <span class="lbl">Mặt Trăng đã biết</span>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Cuộn xuống</span>
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+      <path d="M10 4v12M4 10l6 6 6-6" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</section>
+
+<!-- ── PLANET STRIP ── -->
+<canvas id="planet-canvas" aria-hidden="true"></canvas>
+
+<!-- ── TIMELINE ── -->
+<section class="section">
+  <p class="section-title">Dòng thời gian</p>
+  <div class="timeline" id="timeline">
+
+    <div class="era c-blue">
+      <div class="era-dot"></div>
+      <div class="era-time">~5 tỷ năm trước</div>
+      <div class="era-title">Tinh vân Tiền Mặt Trời</div>
+      <div class="era-body">Một đám mây phân tử khổng lồ — chủ yếu là hydro và heli cùng các nguyên tố nặng hơn từ những ngôi sao đã chết — bắt đầu co lại dưới trọng lực. Một vụ nổ siêu tân tinh gần đó có thể đã châm ngòi cho sự sụp đổ này. Đám mây quay nhanh hơn theo nguyên lý bảo toàn mômen động lượng, dẹt dần thành một đĩa quay phẳng.</div>
+      <span class="era-tag">Khởi nguồn</span>
+    </div>
+
+    <div class="era c-gold">
+      <div class="era-dot"></div>
+      <div class="era-time">~4.6 tỷ năm trước</div>
+      <div class="era-title">Mặt Trời Bùng Cháy</div>
+      <div class="era-body">Trung tâm đám mây co lại đủ mật độ và nhiệt độ (~10 triệu °C) để phản ứng nhiệt hạch bắt đầu — Mặt Trời ra đời. Ngôi sao non trẻ này tỏa ra gió Mặt Trời mạnh, thổi bay vật chất khí nhẹ ra xa và định hình ranh giới giữa các hành tinh đá và khí khổng lồ.</div>
+      <span class="era-tag">Mặt Trời ra đời</span>
+    </div>
+
+    <div class="era c-orange">
+      <div class="era-dot"></div>
+      <div class="era-time">4.6 – 4.5 tỷ năm trước</div>
+      <div class="era-title">Đĩa Tiền Hành Tinh & Tích Tụ Vật Chất</div>
+      <div class="era-body">Vật chất còn lại trong đĩa bụi bắt đầu kết tụ thành các <em>vi thể hành tinh</em> (planetesimal) — những tảng đá và kim loại rộng vài km. Chúng va chạm, hợp nhất, lớn dần thành các phôi hành tinh. Ở vùng lạnh bên ngoài đường băng (frost line), nước và khí đóng băng giúp các hành tinh khổng lồ tích lũy khối lượng nhanh hơn rất nhiều.</div>
+      <span class="era-tag">Hành tinh hình thành</span>
+    </div>
+
+    <div class="era c-purple">
+      <div class="era-dot"></div>
+      <div class="era-time">~4.5 tỷ năm trước</div>
+      <div class="era-title">Sao Mộc — Người Khổng Lồ Đầu Tiên</div>
+      <div class="era-body">Sao Mộc là hành tinh đầu tiên hoàn thiện, với nhân đá khổng lồ thu hút khí từ đĩa protoplanetary. Hấp lực của nó quá mạnh, ngăn vật chất ở vành đai tiểu hành tinh hợp thành một hành tinh thứ năm — đây là lý do vành đai tiểu hành tinh tồn tại đến ngày nay.</div>
+      <span class="era-tag">Sao Mộc</span>
+    </div>
+
+    <div class="era c-teal">
+      <div class="era-dot"></div>
+      <div class="era-time">~4.51 tỷ năm trước</div>
+      <div class="era-title">Va Chạm Khổng Lồ — Mặt Trăng Ra Đời</div>
+      <div class="era-body">Một thiên thể cỡ sao Hỏa mang tên <strong>Theia</strong> đâm vào Trái Đất nguyên thủy. Vụ va chạm khủng khiếp bắn tung một lượng lớn vật chất vào quỹ đạo, nhanh chóng kết tụ thành Mặt Trăng. Điều này giải thích sự giống nhau về thành phần đồng vị giữa Trái Đất và Mặt Trăng, cũng như sự nghiêng trục quay ~23.5° của Trái Đất.</div>
+      <span class="era-tag">Mặt Trăng</span>
+    </div>
+
+    <div class="era c-red">
+      <div class="era-dot"></div>
+      <div class="era-time">4.1 – 3.8 tỷ năm trước</div>
+      <div class="era-title">Mưa Thiên Thạch Khổng Lồ (Late Heavy Bombardment)</div>
+      <div class="era-body">Sự xáo trộn quỹ đạo của Sao Mộc và Sao Thổ (theo mô hình Nice) đẩy một lượng khổng lồ tiểu hành tinh vào vùng trong Hệ Mặt Trời. Mặt Trăng, Sao Hỏa và Trái Đất hứng chịu vô số va chạm lớn — tạo ra những hố thiên thạch khổng lồ trên Mặt Trăng còn thấy đến ngày nay. Nghịch lý thay, những thiên thạch này cũng có thể đã mang nước và hữu cơ tới Trái Đất.</div>
+      <span class="era-tag">Giai đoạn hủy diệt</span>
+    </div>
+
+    <div class="era c-teal">
+      <div class="era-dot"></div>
+      <div class="era-time">~3.8 tỷ năm trước</div>
+      <div class="era-title">Đại Dương & Sự Sống Đầu Tiên</div>
+      <div class="era-body">Trái Đất nguội đủ để hơi nước ngưng tụ thành đại dương. Trong môi trường đó, các phân tử hữu cơ tự tổ chức — vi khuẩn đầu tiên xuất hiện. Sự sống không phải là ngẫu nhiên; nó là sản phẩm tất yếu của một hành tinh có kích thước, vị trí, và lịch sử đúng đắn.</div>
+      <span class="era-tag">Khởi đầu sự sống</span>
+    </div>
+
+    <div class="era c-blue">
+      <div class="era-dot"></div>
+      <div class="era-time">~2.4 tỷ năm trước</div>
+      <div class="era-title">Đại Oxy Hóa</div>
+      <div class="era-body">Vi khuẩn lam (cyanobacteria) thải oxy vào khí quyển qua quang hợp. Sự kiện này thay đổi hoàn toàn hóa học khí quyển Trái Đất, tạo tầng ozone bảo vệ bề mặt khỏi tia cực tím, và mở đường cho sự sống phức tạp hơn.</div>
+      <span class="era-tag">Khí quyển Trái Đất</span>
+    </div>
+
+    <div class="era c-gold">
+      <div class="era-dot"></div>
+      <div class="era-time">Hiện tại — 5 tỷ năm tới</div>
+      <div class="era-title">Hệ Mặt Trời Hôm Nay & Tương Lai</div>
+      <div class="era-body">Mặt Trời đang ở giai đoạn trưởng thành, đốt cháy khoảng một nửa nhiên liệu hydro. Trong ~5 tỷ năm nữa, nó sẽ phình thành <em>sao khổng lồ đỏ</em>, nuốt chửng Sao Thủy, Sao Kim và có thể cả Trái Đất. Cuối cùng, lõi còn lại sẽ là một <em>sao lùn trắng</em> — di tích lạnh lẽo của một ngôi sao từng nuôi dưỡng sự sống.</div>
+      <span class="era-tag">Tương lai xa</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FACTS GRID ── -->
+<div class="facts-grid" id="facts-grid">
+  <div class="fact-card">
+    <div class="fact-icon">☀️</div>
+    <div class="fact-label">Nhiệt độ lõi Mặt Trời</div>
+    <div class="fact-value">15 triệu °C</div>
+  </div>
+  <div class="fact-card">
+    <div class="fact-icon">🪐</div>
+    <div class="fact-label">Khối lượng Sao Mộc</div>
+    <div class="fact-value">318 lần Trái Đất</div>
+  </div>
+  <div class="fact-card">
+    <div class="fact-icon">💧</div>
+    <div class="fact-label">Tuổi đại dương Trái Đất</div>
+    <div class="fact-value">~3.8 tỷ năm</div>
+  </div>
+  <div class="fact-card">
+    <div class="fact-icon">🌕</div>
+    <div class="fact-label">Khoảng cách Trái Đất–Mặt Trăng</div>
+    <div class="fact-value">384,400 km</div>
+  </div>
+  <div class="fact-card">
+    <div class="fact-icon">💥</div>
+    <div class="fact-label">Vận tốc va chạm Theia</div>
+    <div class="fact-value">~40,000 km/h</div>
+  </div>
+  <div class="fact-card">
+    <div class="fact-icon">⭐</div>
+    <div class="fact-label">Tuổi thọ còn lại Mặt Trời</div>
+    <div class="fact-value">~5 tỷ năm</div>
+  </div>
+  <div class="fact-card">
+    <div class="fact-icon">🌌</div>
+    <div class="fact-label">Đường kính Hệ Mặt Trời</div>
+    <div class="fact-value">~287 tỷ km</div>
+  </div>
+  <div class="fact-card">
+    <div class="fact-icon">🌡️</div>
+    <div class="fact-label">Nhiệt độ bề mặt Sao Kim</div>
+    <div class="fact-value">465°C — hành tinh nóng nhất</div>
+  </div>
+</div>
+
+<!-- ── CLOSING ── -->
+<div class="closing">
+  <blockquote>
+    "Hệ Mặt Trời không phải được <strong>thiết kế</strong> — nó được <strong>điêu khắc</strong> bởi 4.6 tỷ năm va chạm, trọng lực, và thời gian. Chúng ta là hậu duệ của những ngôi sao đã chết."
+  </blockquote>
+  <cite>— Dựa trên Tinh vân Giả thuyết (Laplace, 1796) & Mô hình Nice (2005)</cite>
+</div>
+
+<script>
+// ── Stars ──
+(function() {
+  const c = document.getElementById('stars-canvas');
+  const ctx = c.getContext('2d');
+  let stars = [];
+
+  function resize() {
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+  }
+
+  function initStars(n) {
+    stars = [];
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * c.width,
+        y: Math.random() * c.height,
+        r: Math.random() * 1.2 + 0.2,
+        a: Math.random(),
+        da: (Math.random() - 0.5) * 0.005
+      });
+    }
+  }
+
+  function drawStars() {
+    ctx.clearRect(0, 0, c.width, c.height);
+    for (const s of stars) {
+      s.a += s.da;
+      if (s.a < 0 || s.a > 1) s.da *= -1;
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${s.a * 0.8})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(drawStars);
+  }
+
+  window.addEventListener('resize', () => { resize(); initStars(280); });
+  resize();
+  initStars(280);
+  drawStars();
+})();
+
+// ── Orbits (hero decoration) ──
+(function() {
+  const container = document.getElementById('orbits');
+  const sizes = [180, 280, 380, 480, 580];
+  const durations = [60, 90, 130, 180, 240];
+  sizes.forEach((s, i) => {
+    const ring = document.createElement('div');
+    ring.className = 'orbit-ring';
+    ring.style.cssText = `width:${s}px;height:${s}px;animation-duration:${durations[i]}s;`;
+    const dot = document.createElement('div');
+    dot.style.cssText = `position:absolute;width:5px;height:5px;border-radius:50%;top:-2.5px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.4);`;
+    ring.appendChild(dot);
+    container.appendChild(ring);
+  });
+})();
+
+// ── Planet strip canvas ──
+(function() {
+  const c = document.getElementById('planet-canvas');
+  const ctx = c.getContext('2d');
+  c.width = Math.min(window.innerWidth, 900);
+  c.height = 200;
+
+  const planets = [
+    { name: 'Mặt Trời', r: 38, color: '#f5c842', glow: '#ff7a2f', x: 0.08 },
+    { name: 'Sao Thủy', r: 7, color: '#94a3b8', glow: '#94a3b8', x: 0.22 },
+    { name: 'Sao Kim', r: 11, color: '#e2c97e', glow: '#f5c842', x: 0.33 },
+    { name: 'Trái Đất', r: 12, color: '#4fa3e0', glow: '#2dd4bf', x: 0.44 },
+    { name: 'Sao Hỏa', r: 9, color: '#ef4444', glow: '#ef4444', x: 0.55 },
+    { name: 'Sao Mộc', r: 30, color: '#c8a97e', glow: '#c8a97e', x: 0.68 },
+    { name: 'Sao Thổ', r: 24, color: '#ddb97a', glow: '#f5c842', x: 0.80, ring: true },
+    { name: 'Sao Thiên Vương', r: 16, color: '#7dd3ca', glow: '#2dd4bf', x: 0.89 },
+    { name: 'Sao Hải Vương', r: 15, color: '#4fa3e0', glow: '#4fa3e0', x: 0.96 },
+  ];
+
+  const cy = c.height / 2;
+
+  function draw() {
+    ctx.clearRect(0, 0, c.width, c.height);
+
+    for (const p of planets) {
+      const cx = p.x * c.width;
+
+      // glow
+      const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, p.r * 3);
+      grad.addColorStop(0, p.glow + '55');
+      grad.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.arc(cx, cy, p.r * 3, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // ring (Saturn)
+      if (p.ring) {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(1, 0.35);
+        ctx.beginPath();
+        ctx.arc(0, 0, p.r + 14, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(221,185,122,0.5)';
+        ctx.lineWidth = 8;
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // planet
+      const pGrad = ctx.createRadialGradient(cx - p.r*0.3, cy - p.r*0.3, p.r*0.1, cx, cy, p.r);
+      pGrad.addColorStop(0, p.color + 'ff');
+      pGrad.addColorStop(1, p.color + '88');
+      ctx.beginPath();
+      ctx.arc(cx, cy, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = pGrad;
+      ctx.fill();
+
+      // label
+      ctx.fillStyle = 'rgba(148,163,184,0.7)';
+      ctx.font = '9px "Be Vietnam Pro", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(p.name, cx, cy + p.r + 14);
+    }
+  }
+
+  draw();
+  window.addEventListener('resize', () => {
+    c.width = Math.min(window.innerWidth, 900);
+    draw();
+  });
+})();
+
+// ── Scroll-triggered animations ──
+(function() {
+  const eras = document.querySelectorAll('.era');
+  const cards = document.querySelectorAll('.fact-card');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15 });
+
+  eras.forEach(el => observer.observe(el));
+
+  const cardObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        const idx = [...cards].indexOf(entry.target);
+        setTimeout(() => entry.target.classList.add('visible'), idx * 60);
+        cardObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  cards.forEach(el => cardObserver.observe(el));
+})();
+</script>
+</body>
+</html>
