@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mô Phỏng Hệ Mặt Trời — Qua Các Giai Đoạn</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #060810;
+  --panel: rgba(10,14,30,0.92);
+  --border: rgba(255,255,255,0.08);
+  --gold: #f5c842;
+  --orange: #ff7a2f;
+  --blue: #4fa3e0;
+  --teal: #2dd4bf;
+  --red: #ef4444;
+  --purple: #a855f7;
+  --text: #e2e8f0;
+  --muted: #64748b;
+  --active-border: rgba(79,163,224,0.6);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Be Vietnam Pro', sans-serif;
+  overflow: hidden;
+}
+
+/* ── Layout ── */
+.app {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 56px 1fr;
+  height: 100vh;
+  gap: 0;
+}
+
+/* ── Header ── */
+.header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(6,8,16,0.95);
+  backdrop-filter: blur(12px);
+  gap: 12px;
+}
+.header-icon { font-size: 1.3rem; }
+.header h1 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.02em;
+}
+.header-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-left: auto;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--panel);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-title {
+  padding: 16px 16px 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.stage-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.2s;
+  width: 100%;
+}
+.stage-btn:hover { background: rgba(255,255,255,0.04); }
+.stage-btn.active {
+  background: rgba(79,163,224,0.08);
+  border-left: 3px solid var(--blue);
+}
+
+.stage-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.stage-info { flex: 1; min-width: 0; }
+.stage-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+.stage-time {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+/* ── Canvas area ── */
+.canvas-wrap {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(ellipse 100% 80% at 50% 50%, #0a1025 0%, var(--bg) 70%);
+}
+
+#sim-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Info overlay ── */
+.info-panel {
+  position: absolute;
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  background: rgba(6,8,16,0.88);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(16px);
+  transition: opacity 0.4s;
+}
+
+.info-era {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.info-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.info-body {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  line-height: 1.7;
+}
+
+/* ── Speed control ── */
+.controls {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ctrl-btn {
+  background: rgba(255,255,255,0.07);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ctrl-btn:hover { background: rgba(255,255,255,0.12); }
+.ctrl-btn.active {
+  background: rgba(79,163,224,0.15);
+  border-color: var(--active-border);
+}
+.speed-label {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+/* ── Stage label (top-left) ── */
+.stage-label {
+  position: absolute;
+  top: 16px;
+  left: 20px;
+  pointer-events: none;
+}
+.stage-label .sl-time {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.stage-label .sl-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Scrollbar */
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-track { background: transparent; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+@media (max-width: 680px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: 56px auto 1fr; }
+  .sidebar { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; overflow-y: hidden; }
+  .sidebar-title { display: none; }
+  .stage-btn { min-width: 140px; border-bottom: none; border-right: 1px solid rgba(255,255,255,0.04); }
+  .info-panel { width: calc(100% - 32px); left: 16px; right: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <span class="header-icon">🌌</span>
+    <h1>Mô Phỏng Hệ Mặt Trời</h1>
+    <span class="header-sub">Chọn giai đoạn để xem mô phỏng</span>
+  </header>
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-title">Các giai đoạn</div>
+    <button class="stage-btn active" data-stage="0">
+      <div class="stage-icon" style="background:rgba(79,163,224,0.15)">☁️</div>
+      <div class="stage-info">
+        <div class="stage-name">Tinh vân Tiền Mặt Trời</div>
+        <div class="stage-time">~5 tỷ năm trước</div>
+      </div>
+    </button>
+    <button class="stage-btn" data-stage="1">
+      <div class="stage-icon" style="background:rgba(245,200,66,0.15)">☀️</div>
+      <div class="stage-info">
+        <div class="stage-name">Mặt Trời Bùng Cháy</div>
+        <div class="stage-time">~4.6 tỷ năm trước</div>
+      </div>
+    </button>
+    <button class="stage-btn" data-stage="2">
+      <div class="stage-icon" style="background:rgba(255,122,47,0.15)">💫</div>
+      <div class="stage-info">
+        <div class="stage-name">Đĩa Tiền Hành Tinh</div>
+        <div class="stage-time">4.6 – 4.5 tỷ năm trước</div>
+      </div>
+    </button>
+    <button class="stage-btn" data-stage="3">
+      <div class="stage-icon" style="background:rgba(168,85,247,0.15)">🪨</div>
+      <div class="stage-info">
+        <div class="stage-name">Tích Tụ Vi Thể Hành Tinh</div>
+        <div class="stage-time">4.5 – 4.4 tỷ năm trước</div>
+      </div>
+    </button>
+    <button class="stage-btn" data-stage="4">
+      <div class="stage-icon" style="background:rgba(239,68,68,0.15)">💥</div>
+      <div class="stage-info">
+        <div class="stage-name">Va Chạm Theia</div>
+        <div class="stage-time">~4.51 tỷ năm trước</div>
+      </div>
+    </button>
+    <button class="stage-btn" data-stage="5">
+      <div class="stage-icon" style="background:rgba(239,68,68,0.15)">☄️</div>
+      <div class="stage-info">
+        <div class="stage-name">Mưa Thiên Thạch Khổng Lồ</div>
+        <div class="stage-time">4.1 – 3.8 tỷ năm trước</div>
+      </div>
+    </button>
+    <button class="stage-btn" data-stage="6">
+      <div class="stage-icon" style="background:rgba(45,212,191,0.15)">🌍</div>
+      <div class="stage-info">
+        <div class="stage-name">Hệ Mặt Trời Hiện Đại</div>
+        <div class="stage-time">Hiện tại</div>
+      </div>
+    </button>
+    <button class="stage-btn" data-stage="7">
+      <div class="stage-icon" style="background:rgba(255,100,50,0.15)">🔴</div>
+      <div class="stage-info">
+        <div class="stage-name">Sao Khổng Lồ Đỏ</div>
+        <div class="stage-time">~5 tỷ năm tới</div>
+      </div>
+    </button>
+  </aside>
+
+  <!-- Canvas -->
+  <div class="canvas-wrap">
+    <canvas id="sim-canvas"></canvas>
+
+    <!-- Controls -->
+    <div class="controls">
+      <span class="speed-label">Tốc độ:</span>
+      <button class="ctrl-btn active" id="speed1" onclick="setSpeed(1)">1×</button>
+      <button class="ctrl-btn" id="speed2" onclick="setSpeed(2)">2×</button>
+      <button class="ctrl-btn" id="speed5" onclick="setSpeed(5)">5×</button>
+      <button class="ctrl-btn" id="pauseBtn" onclick="togglePause()">⏸ Dừng</button>
+    </div>
+
+    <!-- Stage label -->
+    <div class="stage-label">
+      <div class="sl-time" id="sl-time" style="color:#4fa3e0"></div>
+      <div class="sl-name" id="sl-name"></div>
+    </div>
+
+    <!-- Info panel -->
+    <div class="info-panel">
+      <div class="info-era" id="info-era"></div>
+      <div class="info-title" id="info-title"></div>
+      <div class="info-body" id="info-body"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  CONFIG & STATE
+// ════════════════════════════════════════════════
+const canvas = document.getElementById('sim-canvas');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, cx = 0, cy = 0;
+let speedMult = 1;
+let paused = false;
+let currentStage = 0;
+let t = 0;
+let raf;
+let stageParticles = [];
+
+// ════════════════════════════════════════════════
+//  STAGE DEFINITIONS
+// ════════════════════════════════════════════════
+const STAGES = [
+  {
+    id: 0,
+    color: '#4fa3e0',
+    time: '~5 tỷ năm trước',
+    name: 'Tinh vân Tiền Mặt Trời',
+    era: 'Giai đoạn sơ khai',
+    title: 'Đám Mây Khí Bụi Sụp Đổ',
+    body: 'Một đám mây phân tử khổng lồ gồm hydro, heli và bụi sao bắt đầu co lại dưới lực hấp dẫn. Đám mây quay chậm và dần phẳng ra — bước đầu tiên tạo nên Hệ Mặt Trời.',
+    draw: drawNebula
+  },
+  {
+    id: 1,
+    color: '#f5c842',
+    time: '~4.6 tỷ năm trước',
+    name: 'Mặt Trời Bùng Cháy',
+    era: 'Ngôi sao ra đời',
+    title: 'Phản Ứng Nhiệt Hạch Bắt Đầu',
+    body: 'Lõi của đám mây đạt 10 triệu °C — phản ứng tổng hợp hạt nhân bùng cháy. Mặt Trời non trẻ tỏa sáng, gió Mặt Trời thổi mạnh đẩy khí nhẹ ra phía ngoài.',
+    draw: drawProtoSun
+  },
+  {
+    id: 2,
+    color: '#ff7a2f',
+    time: '4.6 – 4.5 tỷ năm trước',
+    name: 'Đĩa Tiền Hành Tinh',
+    era: 'Đĩa bụi quay',
+    title: 'Vật Chất Xoay Quanh Mặt Trời',
+    body: 'Vật chất còn lại tạo thành một đĩa phẳng quay quanh Mặt Trời. Bụi và khí va chạm, kết tụ thành các hạt nhỏ dần — nền tảng cho các hành tinh.',
+    draw: drawProtoDisk
+  },
+  {
+    id: 3,
+    color: '#a855f7',
+    time: '4.5 – 4.4 tỷ năm trước',
+    name: 'Tích Tụ Vi Thể Hành Tinh',
+    era: 'Hành tinh hình thành',
+    title: 'Planetesimal Va Chạm & Hợp Nhất',
+    body: 'Các hạt bụi kết hợp thành khối đá km-scale (planetesimal). Chúng va chạm và hợp nhất tạo thành phôi hành tinh ngày càng lớn hơn. Ở vùng ngoài, khí lạnh giúp Sao Mộc lớn nhanh hơn.',
+    draw: drawAccretion
+  },
+  {
+    id: 4,
+    color: '#ef4444',
+    time: '~4.51 tỷ năm trước',
+    name: 'Va Chạm Theia',
+    era: 'Mặt Trăng ra đời',
+    title: 'Theia Đâm Vào Trái Đất',
+    body: 'Một thiên thể cỡ Sao Hỏa — Theia — đâm thẳng vào Trái Đất nguyên thủy. Vụ va chạm bắn ra vật chất khổng lồ, kết tụ thành Mặt Trăng trong vài triệu năm.',
+    draw: drawTheiaImpact
+  },
+  {
+    id: 5,
+    color: '#ef4444',
+    time: '4.1 – 3.8 tỷ năm trước',
+    name: 'Mưa Thiên Thạch Khổng Lồ',
+    era: 'Late Heavy Bombardment',
+    title: 'Thiên Thạch Đổ Xuống Các Hành Tinh',
+    body: 'Sự xáo trộn quỹ đạo Sao Mộc–Sao Thổ đẩy hàng triệu tiểu hành tinh vào vùng trong. Mặt Trăng và Trái Đất hứng chịu vô số va chạm tạo ra những hố khổng lồ.',
+    draw: drawBombardment
+  },
+  {
+    id: 6,
+    color: '#2dd4bf',
+    time: 'Hiện tại',
+    name: 'Hệ Mặt Trời Hiện Đại',
+    era: 'Hệ ổn định',
+    title: '8 Hành Tinh Quanh Mặt Trời',
+    body: 'Hệ Mặt Trời đã ổn định sau hàng tỷ năm. 8 hành tinh chuyển động theo quỹ đạo elip, được giữ cân bằng bởi trọng lực Mặt Trời và tương tác với nhau.',
+    draw: drawModernSolarSystem
+  },
+  {
+    id: 7,
+    color: '#ff5533',
+    time: '~5 tỷ năm tới',
+    name: 'Sao Khổng Lồ Đỏ',
+    era: 'Kết thúc',
+    title: 'Mặt Trời Phình To Nuốt Trái Đất',
+    body: 'Hết nhiên liệu hydro, lõi Mặt Trời co lại, lớp ngoài phình rộng thành sao khổng lồ đỏ — nuốt Sao Thủy, Sao Kim và Trái Đất. Cuối cùng chỉ còn sao lùn trắng lạnh lẽo.',
+    draw: drawRedGiant
+  }
+];
+
+// ════════════════════════════════════════════════
+//  UTILITY
+// ════════════════════════════════════════════════
+function rand(a, b) { return a + Math.random() * (b - a); }
+function randPM(r) { return rand(-r, r); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function hsl(h, s, l, a = 1) { return `hsla(${h},${s}%,${l}%,${a})`; }
+
+function drawGlow(x, y, r, color, alpha = 0.5) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, color.replace(')', `,${alpha})`).replace('rgb', 'rgba'));
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = g;
+  ctx.fill();
+}
+
+function drawCircle(x, y, r, fill, stroke, sw = 1) {
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = sw; ctx.stroke(); }
+}
+
+function starField(count = 120) {
+  // Use seeded positions stored at init
+  for (const s of stageParticles._stars || []) {
+    ctx.globalAlpha = s.a;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ════════════════════════════════════════════════
+//  STAGE 0 — NEBULA
+// ════════════════════════════════════════════════
+function initNebula() {
+  const pts = [];
+  const count = 400;
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const dist = Math.pow(Math.random(), 0.5) * Math.min(W, H) * 0.44;
+    pts.push({
+      angle, dist,
+      baseAngle: angle,
+      baseDist: dist,
+      r: rand(1, 3.5),
+      opacity: rand(0.3, 0.9),
+      color: Math.random() < 0.6
+        ? `hsl(${rand(180, 240)},60%,70%)`
+        : `hsl(${rand(30, 60)},80%,75%)`,
+      speed: rand(0.0003, 0.001) * (Math.random() < 0.5 ? 1 : -1),
+      contracting: rand(0, 0.0008)
+    });
+  }
+  stageParticles.nebula = pts;
+}
+
+function drawNebula() {
+  // Background glow
+  const g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(W, H) * 0.5);
+  g1.addColorStop(0, 'rgba(30,50,120,0.35)');
+  g1.addColorStop(0.5, 'rgba(60,20,100,0.15)');
+  g1.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g1;
+  ctx.fillRect(0, 0, W, H);
+
+  const pts = stageParticles.nebula;
+  const contraction = clamp(t * 0.00012, 0, 0.65);
+
+  for (const p of pts) {
+    p.angle += p.speed * speedMult;
+    const dist = p.dist * (1 - contraction * p.contracting * 400);
+    const x = cx + Math.cos(p.angle) * dist;
+    const y = cy + Math.sin(p.angle) * dist * 0.6;
+    ctx.beginPath();
+    ctx.arc(x, y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.opacity * (0.5 + 0.5 * Math.sin(t * 0.01 + p.angle));
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Core glow
+  const coreBright = clamp(t * 0.0002, 0, 0.5);
+  drawGlow(cx, cy, 80 * coreBright + 20, 'rgb(150,180,255)', coreBright);
+}
+
+// ════════════════════════════════════════════════
+//  STAGE 1 — PROTO SUN
+// ════════════════════════════════════════════════
+function initProtoSun() {
+  const flares = [];
+  for (let i = 0; i < 12; i++) {
+    flares.push({ angle: rand(0, Math.PI * 2), length: rand(0.6, 1.4), speed: rand(0.008, 0.02) });
+  }
+  stageParticles.protoSun = { flares, windParticles: [] };
+  for (let i = 0; i < 80; i++) {
+    const angle = rand(0, Math.PI * 2);
+    stageParticles.protoSun.windParticles.push({
+      angle,
+      dist: rand(80, 200),
+      speed: rand(0.5, 1.2),
+      r: rand(1, 3),
+      opacity: rand(0.3, 0.8),
+      color: Math.random() < 0.5 ? '#f5c842' : '#ff7a2f'
+    });
+  }
+}
+
+function drawProtoSun() {
+  const { flares, windParticles } = stageParticles.protoSun;
+  const sunR = Math.min(W, H) * 0.12;
+  const pulse = 1 + 0.04 * Math.sin(t * 0.04);
+
+  // Glow layers
+  for (const [r, alpha, color] of [
+    [sunR * 4, 0.08, 'rgb(255,100,0)'],
+    [sunR * 2.5, 0.18, 'rgb(255,160,40)'],
+    [sunR * 1.5, 0.35, 'rgb(255,200,80)'],
+  ]) {
+    drawGlow(cx, cy, r * pulse, color, alpha);
+  }
+
+  // Corona flares
+  ctx.save();
+  ctx.translate(cx, cy);
+  for (const f of flares) {
+    f.angle += f.speed * speedMult * 0.5;
+    ctx.save();
+    ctx.rotate(f.angle);
+    const len = sunR * (0.5 + 0.5 * f.length) * (0.85 + 0.15 * Math.sin(t * 0.05 + f.angle));
+    const g = ctx.createLinearGradient(0, 0, len, 0);
+    g.addColorStop(0, 'rgba(255,220,80,0.7)');
+    g.addColorStop(1, 'rgba(255,100,0,0)');
+    ctx.beginPath();
+    ctx.moveTo(sunR * 0.8, 0);
+    ctx.lineTo(sunR * 0.8 + len, rand(-8, 8));
+    ctx.strokeStyle = g;
+    ctx.lineWidth = rand(2, 6);
+    ctx.stroke();
+    ctx.restore();
+  }
+  ctx.restore();
+
+  // Sun body
+  const sunGrad = ctx.createRadialGradient(cx - sunR * 0.2, cy - sunR * 0.2, 0, cx, cy, sunR * pulse);
+  sunGrad.addColorStop(0, '#fffde0');
+  sunGrad.addColorStop(0.3, '#ffe080');
+  sunGrad.addColorStop(0.7, '#ff8020');
+  sunGrad.addColorStop(1, '#cc4400');
+  drawCircle(cx, cy, sunR * pulse, sunGrad);
+
+  // Solar wind particles
+  for (const p of windParticles) {
+    p.dist += p.speed * speedMult * 1.5;
+    if (p.dist > Math.max(W, H) * 0.6) p.dist = sunR + 10;
+    const x = cx + Math.cos(p.angle) * p.dist;
+    const y = cy + Math.sin(p.angle) * p.dist;
+    ctx.beginPath();
+    ctx.arc(x, y, p.r * (1 - p.dist / (Math.max(W, H) * 0.6)), 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.opacity * (1 - p.dist / (Math.max(W, H) * 0.6));
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ════════════════════════════════════════════════
+//  STAGE 2 — PROTO DISK
+// ════════════════════════════════════════════════
+function initProtoDisk() {
+  const particles = [];
+  for (let i = 0; i < 500; i++) {
+    const angle = rand(0, Math.PI * 2);
+    const dist = rand(60, Math.min(W, H) * 0.45);
+    particles.push({
+      angle, dist,
+      speed: 0.3 / Math.sqrt(dist) * rand(0.8, 1.2),
+      r: rand(0.8, 2.5),
+      opacity: rand(0.4, 1),
+      color: Math.random() < 0.5 ? '#ff7a2f' : (Math.random() < 0.5 ? '#f5c842' : '#94a3b8')
+    });
+  }
+  stageParticles.protoDisk = particles;
+}
+
+function drawProtoDisk() {
+  const sunR = Math.min(W, H) * 0.07;
+
+  // Disk glow
+  const diskG = ctx.createRadialGradient(cx, cy, sunR, cx, cy, Math.min(W, H) * 0.48);
+  diskG.addColorStop(0, 'rgba(255,120,40,0.15)');
+  diskG.addColorStop(0.4, 'rgba(200,100,30,0.06)');
+  diskG.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.save();
+  ctx.scale(1, 0.35);
+  ctx.translate(0, cy * (1 / 0.35 - 1));
+  ctx.beginPath();
+  ctx.arc(cx, cy / 0.35, Math.min(W, H) * 0.48, 0, Math.PI * 2);
+  ctx.fillStyle = diskG;
+  ctx.fill();
+  ctx.restore();
+
+  // Particles
+  for (const p of stageParticles.protoDisk) {
+    p.angle += p.speed * speedMult * 0.015;
+    const x = cx + Math.cos(p.angle) * p.dist;
+    const y = cy + Math.sin(p.angle) * p.dist * 0.32;
+    ctx.beginPath();
+    ctx.arc(x, y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.opacity * 0.7;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Sun
+  const sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
+  sg.addColorStop(0, '#fffde0');
+  sg.addColorStop(0.5, '#ffe060');
+  sg.addColorStop(1, '#ff6010');
+  drawGlow(cx, cy, sunR * 3, 'rgb(255,150,50)', 0.25);
+  drawCircle(cx, cy, sunR, sg);
+}
+
+// ════════════════════════════════════════════════
+//  STAGE 3 — ACCRETION
+// ════════════════════════════════════════════════
+function initAccretion() {
+  const planetesimals = [];
+  for (let i = 0; i < 14; i++) {
+    const angle = rand(0, Math.PI * 2);
+    const dist = rand(90, Math.min(W, H) * 0.42);
+    planetesimals.push({
+      angle, dist, baseAngle: angle,
+      speed: 0.25 / Math.sqrt(dist) * rand(0.9, 1.1),
+      r: rand(4, 14),
+      color: Math.random() < 0.5 ? '#94a3b8' : (Math.random() < 0.5 ? '#8b6914' : '#c8a97e'),
+      growing: true, maxR: rand(10, 20), growRate: rand(0.001, 0.003),
+      trail: []
+    });
+  }
+  const dust = [];
+  for (let i = 0; i < 200; i++) {
+    dust.push({
+      angle: rand(0, Math.PI * 2),
+      dist: rand(70, Math.min(W, H) * 0.44),
+      speed: rand(0.005, 0.015),
+      r: rand(0.5, 1.5),
+      opacity: rand(0.3, 0.7)
+    });
+  }
+  stageParticles.accretion = { planetesimals, dust };
+}
+
+function drawAccretion() {
+  const { planetesimals, dust } = stageParticles.accretion;
+  const sunR = Math.min(W, H) * 0.065;
+
+  // Dust
+  for (const d of dust) {
+    d.angle += d.speed * speedMult * 0.015;
+    const x = cx + Math.cos(d.angle) * d.dist;
+    const y = cy + Math.sin(d.angle) * d.dist * 0.38;
+    ctx.beginPath();
+    ctx.arc(x, y, d.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#94a3b8';
+    ctx.globalAlpha = d.opacity * 0.5;
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Planetesimals
+  for (const p of planetesimals) {
+    p.angle += p.speed * speedMult * 0.012;
+    if (p.growing && p.r < p.maxR) p.r += p.growRate * speedMult;
+    const x = cx + Math.cos(p.angle) * p.dist;
+    const y = cy + Math.sin(p.angle) * p.dist * 0.38;
+
+    // Trail
+    p.trail.push({ x, y });
+    if (p.trail.length > 24) p.trail.shift();
+    for (let i = 1; i < p.trail.length; i++) {
+      ctx.beginPath();
+      ctx.moveTo(p.trail[i - 1].x, p.trail[i - 1].y);
+      ctx.lineTo(p.trail[i].x, p.trail[i].y);
+      ctx.strokeStyle = p.color;
+      ctx.globalAlpha = i / p.trail.length * 0.2;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // Glow
+    drawGlow(x, y, p.r * 3, `rgb(200,169,126)`, 0.15);
+
+    // Body
+    const g = ctx.createRadialGradient(x - p.r * 0.3, y - p.r * 0.3, 0, x, y, p.r);
+    g.addColorStop(0, '#e0d0b0');
+    g.addColorStop(1, p.color);
+    drawCircle(x, y, p.r, g);
+  }
+
+  // Sun
+  drawGlow(cx, cy, sunR * 3, 'rgb(255,200,80)', 0.3);
+  const sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
+  sg.addColorStop(0, '#fffde0'); sg.addColorStop(1, '#ff7010');
+  drawCircle(cx, cy, sunR, sg);
+}
+
+// ════════════════════════════════════════════════
+//  STAGE 4 — THEIA IMPACT
+// ════════════════════════════════════════════════
+function initTheiaImpact() {
+  stageParticles.theia = {
+    phase: 0, // 0=approach, 1=impact, 2=debris, 3=moon-forms
+    phaseT: 0,
+    debris: [],
+    moonAngle: 0,
+    moonDist: 0,
+    impactFlash: 0
+  };
+}
+
+function drawTheiaImpact() {
+  const s = stageParticles.theia;
+  s.phaseT += speedMult;
+
+  const earthR = Math.min(W, H) * 0.1;
+  const earthX = cx - W * 0.08;
+  const earthY = cy;
+
+  // Phase transitions
+  if (s.phase === 0 && s.phaseT > 240) { s.phase = 1; s.phaseT = 0; s.impactFlash = 1; }
+  if (s.phase === 1 && s.phaseT > 80) {
+    s.phase = 2; s.phaseT = 0;
+    for (let i = 0; i < 120; i++) {
+      const a = rand(0, Math.PI * 2);
+      s.debris.push({ x: earthX, y: earthY, vx: Math.cos(a) * rand(1, 5), vy: Math.sin(a) * rand(0.5, 3), r: rand(1, 5), life: 1, color: Math.random() < 0.5 ? '#ff7a2f' : '#c8a97e' });
+    }
+    s.moonDist = earthR * 1.5;
+    s.moonAngle = -Math.PI / 2;
+  }
+  if (s.phase === 2 && s.phaseT > 180) { s.phase = 3; s.phaseT = 0; }
+
+  // ─ Phase 0: Approach ─
+  if (s.phase === 0) {
+    const progress = s.phaseT / 240;
+    const theiaStartX = cx + W * 0.35;
+    const theiaStartY = cy - H * 0.3;
+    const theiaX = lerp(theiaStartX, earthX + earthR * 0.5, progress);
+    const theiaY = lerp(theiaStartY, earthY, progress);
+    const theiaR = earthR * 0.55;
+
+    // Theia
+    drawGlow(theiaX, theiaY, theiaR * 4, 'rgb(200,100,50)', 0.15);
+    const tg = ctx.createRadialGradient(theiaX, theiaY, 0, theiaX, theiaY, theiaR);
+    tg.addColorStop(0, '#e08050'); tg.addColorStop(1, '#8b3010');
+    drawCircle(theiaX, theiaY, theiaR, tg);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.font = `${Math.max(11, W * 0.013)}px Be Vietnam Pro`;
+    ctx.textAlign = 'center';
+    ctx.fillText('Theia', theiaX, theiaY - theiaR - 10);
+  }
+
+  // ─ Phase 1: Impact ─
+  if (s.phase === 1) {
+    s.impactFlash *= 0.92;
+    ctx.fillStyle = `rgba(255,200,100,${s.impactFlash * 0.4})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  // ─ Phase 2: Debris ─
+  if (s.phase >= 2) {
+    for (const d of s.debris) {
+      d.x += d.vx * speedMult;
+      d.y += d.vy * speedMult;
+      d.life -= 0.004 * speedMult;
+      d.vx *= 0.985;
+      d.vy *= 0.985;
+      if (d.life > 0) {
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r * d.life, 0, Math.PI * 2);
+        ctx.fillStyle = d.color;
+        ctx.globalAlpha = d.life;
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    // Moon coalescing
+    if (s.phase === 2) {
+      s.moonDist = lerp(s.moonDist, earthR * 3.5, 0.012 * speedMult);
+    } else {
+      s.moonAngle += 0.008 * speedMult;
+      s.moonDist = earthR * 3.5;
+    }
+    const moonR = earthR * 0.27;
+    const moonX = earthX + Math.cos(s.moonAngle) * s.moonDist;
+    const moonY = earthY + Math.sin(s.moonAngle) * s.moonDist * 0.5;
+    drawGlow(moonX, moonY, moonR * 3, 'rgb(200,200,200)', 0.2);
+    const mg = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, moonR);
+    mg.addColorStop(0, '#d8d0c0'); mg.addColorStop(1, '#807870');
+    drawCircle(moonX, moonY, moonR, mg);
+
+    if (s.phase === 3) {
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = `${Math.max(10, W * 0.012)}px Be Vietnam Pro`;
+      ctx.textAlign = 'center';
+      ctx.fillText('Mặt Trăng', moonX, moonY - moonR - 8);
+    }
+  }
+
+  // Earth
+  drawGlow(earthX, earthY, earthR * 3.5, 'rgb(79,163,224)', 0.25);
+  const eg = ctx.createRadialGradient(earthX - earthR * 0.3, earthY - earthR * 0.3, 0, earthX, earthY, earthR);
+  eg.addColorStop(0, '#70c0ff'); eg.addColorStop(0.5, '#2080d0'); eg.addColorStop(1, '#105090');
+  drawCircle(earthX, earthY, earthR, eg);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = `${Math.max(11, W * 0.013)}px Be Vietnam Pro`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Trái Đất nguyên thủy', earthX, earthY + earthR + 16);
+
+  // Sun (small, background)
+  const sunR = Math.min(W, H) * 0.04;
+  const sunX = cx + W * 0.3, sunY = cy + H * 0.25;
+  drawGlow(sunX, sunY, sunR * 4, 'rgb(255,200,60)', 0.2);
+  const sg = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR);
+  sg.addColorStop(0, '#fffde0'); sg.addColorStop(1, '#ff8020');
+  drawCircle(sunX, sunY, sunR, sg);
+}
+
+// ════════════════════════════════════════════════
+//  STAGE 5 — LATE HEAVY BOMBARDMENT
+// ════════════════════════════════════════════════
+function initBombardment() {
+  const asteroids = [];
+  for (let i = 0; i < 40; i++) {
+    asteroids.push(newAsteroid());
+  }
+  const craters = [];
+  stageParticles.bombardment = { asteroids, craters };
+}
+
+function newAsteroid() {
+  const side = Math.floor(Math.random() * 4);
+  let sx, sy;
+  if (side === 0) { sx = rand(0, W); sy = -20; }
+  else if (side === 1) { sx = W + 20; sy = rand(0, H); }
+  else if (side === 2) { sx = rand(0, W); sy = H + 20; }
+  else { sx = -20; sy = rand(0, H); }
+  const targets = [
+    { x: cx, y: cy }, // sun
+    { x: cx - W * 0.25, y: cy - H * 0.1 }, // earth
+    { x: cx + W * 0.15, y: cy + H * 0.15 }, // mars
+  ];
+  const target = targets[Math.floor(Math.random() * targets.length)];
+  const dx = target.x - sx, dy = target.y - sy;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  const speed = rand(1.5, 4);
+  return {
+    x: sx, y: sy,
+    vx: dx / dist * speed + randPM(0.5),
+    vy: dy / dist * speed + randPM(0.5),
+    r: rand(2, 8),
+    life: 1,
+    trail: [],
+    color: Math.random() < 0.5 ? '#94a3b8' : '#8b7040'
+  };
+}
+
+function drawBombardment() {
+  const { asteroids, craters } = stageParticles.bombardment;
+  const sunR = Math.min(W, H) * 0.065;
+  const earthR = Math.min(W, H) * 0.07;
+  const earthX = cx - W * 0.25, earthY = cy - H * 0.08;
+  const marsR = earthR * 0.65;
+  const marsX = cx + W * 0.15, marsY = cy + H * 0.12;
+
+  // Earth
+  drawGlow(earthX, earthY, earthR * 3, 'rgb(79,163,224)', 0.2);
+  const eg = ctx.createRadialGradient(earthX, earthY, 0, earthX, earthY, earthR);
+  eg.addColorStop(0, '#70c0ff'); eg.addColorStop(1, '#105090');
+  drawCircle(earthX, earthY, earthR, eg);
+  ctx.fillStyle = 'rgba(200,220,255,0.6)';
+  ctx.font = `${Math.max(10, W * 0.011)}px Be Vietnam Pro`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Trái Đất', earthX, earthY + earthR + 14);
+
+  // Moon
+  const moonX = earthX + earthR * 2.2, moonY = earthY - earthR * 1.2;
+  const moonR = earthR * 0.27;
+  const mg = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, moonR);
+  mg.addColorStop(0, '#d0c8b8'); mg.addColorStop(1, '#706860');
+  drawCircle(moonX, moonY, moonR, mg);
+
+  // Mars
+  drawGlow(marsX, marsY, marsR * 3, 'rgb(200,80,60)', 0.2);
+  const marg = ctx.createRadialGradient(marsX, marsY, 0, marsX, marsY, marsR);
+  marg.addColorStop(0, '#ff8060'); marg.addColorStop(1, '#902010');
+  drawCircle(marsX, marsY, marsR, marg);
+  ctx.fillStyle = 'rgba(255,180,160,0.6)';
+  ctx.fillText('Sao Hỏa', marsX, marsY + marsR + 14);
+
+  // Sun
+  drawGlow(cx, cy, sunR * 3, 'rgb(255,200,60)', 0.3);
+  const sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
+  sg.addColorStop(0, '#fffde0'); sg.addColorStop(1, '#ff8020');
+  drawCircle(cx, cy, sunR, sg);
+
+  // Asteroids
+  for (let i = asteroids.length - 1; i >= 0; i--) {
+    const a = asteroids[i];
+    a.x += a.vx * speedMult;
+    a.y += a.vy * speedMult;
+    a.trail.push({ x: a.x, y: a.y });
+    if (a.trail.length > 16) a.trail.shift();
+
+    // trail
+    for (let j = 1; j < a.trail.length; j++) {
+      ctx.beginPath();
+      ctx.moveTo(a.trail[j - 1].x, a.trail[j - 1].y);
+      ctx.lineTo(a.trail[j].x, a.trail[j].y);
+      ctx.strokeStyle = '#ff9040';
+      ctx.globalAlpha = j / a.trail.length * 0.5;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.beginPath();
+    ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+    ctx.fillStyle = a.color;
+    ctx.fill();
+
+    // off screen → respawn
+    if (a.x < -50 || a.x > W + 50 || a.y < -50 || a.y > H + 50) {
+      asteroids[i] = newAsteroid();
+    }
+  }
+
+  // Add new asteroids occasionally
+  if (Math.random() < 0.02 * speedMult) asteroids.push(newAsteroid());
+  if (asteroids.length > 60) asteroids.shift();
+}
+
+// ════════════════════════════════════════════════
+//  STAGE 6 — MODERN SOLAR SYSTEM
+// ════════════════════════════════════════════════
+const PLANETS_DATA = [
+  { name: 'Sao Thủy', a: 0.22, b: 0.20, period: 0.24, r: 4, color: '#94a3b8', glow: '#94a3b8' },
+  { name: 'Sao Kim', a: 0.30, b: 0.28, period: 0.62, r: 6, color: '#e2c97e', glow: '#f5c842' },
+  { name: 'Trái Đất', a: 0.38, b: 0.35, period: 1.0, r: 7, color: '#4fa3e0', glow: '#2dd4bf', moon: true },
+  { name: 'Sao Hỏa', a: 0.47, b: 0.43, period: 1.88, r: 5, color: '#ef4444', glow: '#ef4444' },
+  { name: 'Sao Mộc', a: 0.60, b: 0.55, period: 11.86, r: 18, color: '#c8a97e', glow: '#c8a97e' },
+  { name: 'Sao Thổ', a: 0.71, b: 0.64, period: 29.46, r: 14, color: '#ddb97a', glow: '#f5c842', ring: true },
+  { name: 'Sao Thiên Vương', a: 0.81, b: 0.73, period: 84, r: 10, color: '#7dd3ca', glow: '#2dd4bf' },
+  { name: 'Sao Hải Vương', a: 0.89, b: 0.80, period: 165, r: 9, color: '#3b82f6', glow: '#4fa3e0' },
+];
+
+function initModern() {
+  const angles = PLANETS_DATA.map(p => rand(0, Math.PI * 2));
+  stageParticles.modern = { angles, trails: PLANETS_DATA.map(() => []) };
+}
+
+function drawModernSolarSystem() {
+  const { angles, trails } = stageParticles.modern;
+  const scale = Math.min(W, H) * 0.5;
+  const sunR = Math.min(W, H) * 0.065;
+
+  // Orbit ellipses
+  ctx.save();
+  ctx.translate(cx, cy);
+  for (const p of PLANETS_DATA) {
+    ctx.beginPath();
+    ctx.ellipse(0, 0, p.a * scale, p.b * scale * 0.5, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  // Asteroid belt
+  for (let i = 0; i < 3; i++) {
+    const beltR = (0.52 + i * 0.015) * scale;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, beltR, beltR * 0.5, 0, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(148,163,184,${0.04 - i * 0.01})`;
+    ctx.lineWidth = i === 1 ? 4 : 2;
+    ctx.stroke();
+  }
+
+  // Sun
+  const pulse = 1 + 0.015 * Math.sin(t * 0.04);
+  drawGlow(cx, cy, sunR * 4 * pulse, 'rgb(255,180,40)', 0.2);
+  drawGlow(cx, cy, sunR * 2 * pulse, 'rgb(255,220,80)', 0.35);
+  const sg = ctx.createRadialGradient(cx - sunR * 0.2, cy - sunR * 0.2, 0, cx, cy, sunR * pulse);
+  sg.addColorStop(0, '#fffde0'); sg.addColorStop(0.4, '#ffe060'); sg.addColorStop(1, '#cc5000');
+  drawCircle(cx, cy, sunR * pulse, sg);
+
+  // Planets
+  for (let i = 0; i < PLANETS_DATA.length; i++) {
+    const p = PLANETS_DATA[i];
+    angles[i] += (2 * Math.PI / (p.period * 600)) * speedMult;
+    const px = cx + Math.cos(angles[i]) * p.a * scale;
+    const py = cy + Math.sin(angles[i]) * p.b * scale * 0.5;
+
+    // Trail
+    trails[i].push({ x: px, y: py });
+    if (trails[i].length > 40) trails[i].shift();
+    for (let j = 1; j < trails[i].length; j++) {
+      ctx.beginPath();
+      ctx.moveTo(trails[i][j - 1].x, trails[i][j - 1].y);
+      ctx.lineTo(trails[i][j].x, trails[i][j].y);
+      ctx.strokeStyle = p.glow;
+      ctx.globalAlpha = (j / trails[i].length) * 0.25;
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // Ring (Saturn)
+    if (p.ring) {
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.scale(1, 0.35);
+      ctx.beginPath();
+      ctx.arc(0, 0, p.r + 10, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(221,185,122,0.5)';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Moon (Earth)
+    if (p.moon) {
+      const moonAngle = angles[i] * 13.37;
+      const moonX = px + Math.cos(moonAngle) * (p.r + 10);
+      const moonY = py + Math.sin(moonAngle) * (p.r + 10) * 0.5;
+      const moonG = ctx.createRadialGradient(moonX, moonY, 0, moonX, moonY, 3);
+      moonG.addColorStop(0, '#d0c8b0'); moonG.addColorStop(1, '#706050');
+      drawCircle(moonX, moonY, 3, moonG);
+    }
+
+    // Glow
+    drawGlow(px, py, p.r * 3, `rgb(${hexToRgb(p.glow)})`, 0.2);
+
+    // Body
+    const pg = ctx.createRadialGradient(px - p.r * 0.3, py - p.r * 0.3, 0, px, py, p.r);
+    pg.addColorStop(0, lighten(p.color, 40));
+    pg.addColorStop(1, darken(p.color, 30));
+    drawCircle(px, py, p.r, pg);
+
+    // Label (show on hover-ish — always for now)
+    if (p.r >= 7) {
+      ctx.fillStyle = 'rgba(200,220,255,0.55)';
+      ctx.font = `${Math.max(9, W * 0.011)}px Be Vietnam Pro`;
+      ctx.textAlign = 'center';
+      ctx.fillText(p.name, px, py + p.r + 12);
+    }
+  }
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r},${g},${b}`;
+}
+function lighten(hex, amt) {
+  return '#' + hex.slice(1).match(/.{2}/g).map(c => Math.min(255, parseInt(c, 16) + amt).toString(16).padStart(2, '0')).join('');
+}
+function darken(hex, amt) {
+  return '#' + hex.slice(1).match(/.{2}/g).map(c => Math.max(0, parseInt(c, 16) - amt).toString(16).padStart(2, '0')).join('');
+}
+
+// ════════════════════════════════════════════════
+//  STAGE 7 — RED GIANT
+// ════════════════════════════════════════════════
+function initRedGiant() {
+  stageParticles.redGiant = {
+    sunR: Math.min(W, H) * 0.065,
+    maxR: Math.min(W, H) * 0.42,
+    expandT: 0,
+    particles: [],
+    mercuryGone: false,
+    venusGone: false,
+    earthGone: false
+  };
+  for (let i = 0; i < 60; i++) {
+    stageParticles.redGiant.particles.push({
+      angle: rand(0, Math.PI * 2),
+      dist: rand(0, 1),
+      speed: rand(0.003, 0.008),
+      opacity: rand(0.3, 0.8),
+      r: rand(2, 6)
+    });
+  }
+}
+
+function drawRedGiant() {
+  const s = stageParticles.redGiant;
+  s.expandT += speedMult;
+
+  const progress = clamp(s.expandT / 600, 0, 1);
+  const eased = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+  const sunR = lerp(s.sunR, s.maxR, eased);
+
+  // Outer glow
+  for (const [mul, alpha, color] of [
+    [1.6, 0.07, 'rgb(255,50,10)'],
+    [1.3, 0.15, 'rgb(255,100,20)'],
+    [1.1, 0.25, 'rgb(255,140,40)']
+  ]) {
+    drawGlow(cx, cy, sunR * mul, color, alpha);
+  }
+
+  // Expanding shell particles
+  for (const p of s.particles) {
+    p.dist += p.speed * speedMult;
+    if (p.dist > 1.2) p.dist = 0;
+    const d = sunR * (0.9 + p.dist * 0.5);
+    const x = cx + Math.cos(p.angle + t * 0.005) * d;
+    const y = cy + Math.sin(p.angle + t * 0.005) * d;
+    ctx.beginPath();
+    ctx.arc(x, y, p.r, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff6020';
+    ctx.globalAlpha = p.opacity * (1 - p.dist);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Sun body
+  const sg = ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
+  sg.addColorStop(0, '#ffe060');
+  sg.addColorStop(0.3, '#ff8020');
+  sg.addColorStop(0.7, '#cc2000');
+  sg.addColorStop(1, '#880000');
+  drawCircle(cx, cy, sunR, sg);
+
+  // Planet remnants
+  const scale = Math.min(W, H) * 0.5;
+  const remnantPlanets = [
+    { name: 'Sao Mộc', a: 0.60, b: 0.55, period: 11.86, r: 18, color: '#c8a97e', angle: 1.2 },
+    { name: 'Sao Thổ', a: 0.71, b: 0.64, period: 29.46, r: 14, color: '#ddb97a', angle: 2.5, ring: true },
+    { name: 'Sao Hải Vương', a: 0.89, b: 0.80, period: 165, r: 9, color: '#3b82f6', angle: 4.1 },
+  ];
+
+  for (const p of remnantPlanets) {
+    const ang = p.angle + t * (2 * Math.PI / (p.period * 600)) * speedMult;
+    const px = cx + Math.cos(ang) * p.a * scale;
+    const py = cy + Math.sin(ang) * p.b * scale * 0.5;
+    if (Math.sqrt((px - cx) ** 2 + (py - cy) ** 2) < sunR) continue;
+    if (p.ring) {
+      ctx.save(); ctx.translate(px, py); ctx.scale(1, 0.35);
+      ctx.beginPath(); ctx.arc(0, 0, p.r + 10, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(221,185,122,0.4)'; ctx.lineWidth = 6; ctx.stroke();
+      ctx.restore();
+    }
+    const pg = ctx.createRadialGradient(px, py, 0, px, py, p.r);
+    pg.addColorStop(0, lighten(p.color, 30)); pg.addColorStop(1, darken(p.color, 20));
+    drawCircle(px, py, p.r, pg);
+    ctx.fillStyle = 'rgba(200,200,200,0.4)';
+    ctx.font = `${Math.max(9, W * 0.011)}px Be Vietnam Pro`;
+    ctx.textAlign = 'center';
+    ctx.fillText(p.name, px, py + p.r + 12);
+  }
+
+  // Engulfed planets (fading labels)
+  const innerProgress = clamp(progress * 3, 0, 1);
+  if (innerProgress > 0.3) {
+    ctx.fillStyle = `rgba(255,100,60,${(1 - innerProgress) * 0.8})`;
+    ctx.font = `${Math.max(10, W * 0.012)}px Be Vietnam Pro`;
+    ctx.textAlign = 'center';
+    if (innerProgress < 0.6) ctx.fillText('Sao Thủy bị nuốt...', cx + W * 0.12, cy - H * 0.2);
+    if (innerProgress > 0.5 && innerProgress < 0.8) ctx.fillText('Sao Kim bị nuốt...', cx + W * 0.2, cy + H * 0.1);
+    if (innerProgress > 0.7) ctx.fillText('Trái Đất bị nuốt...', cx - W * 0.15, cy + H * 0.2);
+  }
+
+  // White dwarf label
+  if (progress > 0.9) {
+    ctx.fillStyle = `rgba(200,220,255,${(progress - 0.9) * 10 * 0.7})`;
+    ctx.font = `bold ${Math.max(12, W * 0.014)}px Be Vietnam Pro`;
+    ctx.textAlign = 'center';
+    ctx.fillText('→ Sao lùn trắng trong 1 tỷ năm nữa', cx, cy + sunR + 30);
+  }
+}
+
+// ════════════════════════════════════════════════
+//  RENDER LOOP
+// ════════════════════════════════════════════════
+function resize() {
+  const wrap = canvas.parentElement;
+  canvas.width = wrap.offsetWidth;
+  canvas.height = wrap.offsetHeight;
+  W = canvas.width;
+  H = canvas.height;
+  cx = W / 2;
+  cy = H / 2;
+}
+
+function initStage(id) {
+  currentStage = id;
+  t = 0;
+  stageParticles = {};
+
+  // Init background stars
+  stageParticles._stars = [];
+  for (let i = 0; i < 160; i++) {
+    stageParticles._stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random() * 0.6 + 0.2
+    });
+  }
+
+  const stage = STAGES[id];
+  if (id === 0) initNebula();
+  if (id === 1) initProtoSun();
+  if (id === 2) initProtoDisk();
+  if (id === 3) initAccretion();
+  if (id === 4) initTheiaImpact();
+  if (id === 5) initBombardment();
+  if (id === 6) initModern();
+  if (id === 7) initRedGiant();
+
+  // Update UI
+  document.getElementById('sl-time').textContent = stage.time;
+  document.getElementById('sl-name').textContent = stage.name;
+  document.getElementById('sl-time').style.color = stage.color;
+  document.getElementById('info-era').textContent = stage.era;
+  document.getElementById('info-era').style.color = stage.color;
+  document.getElementById('info-title').textContent = stage.title;
+  document.getElementById('info-body').textContent = stage.body;
+
+  document.querySelectorAll('.stage-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', i === id);
+  });
+}
+
+function frame() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Stars background
+  starField();
+
+  if (!paused) {
+    t += speedMult;
+    STAGES[currentStage].draw();
+  } else {
+    STAGES[currentStage].draw();
+  }
+
+  raf = requestAnimationFrame(frame);
+}
+
+// ════════════════════════════════════════════════
+//  CONTROLS
+// ════════════════════════════════════════════════
+function setSpeed(s) {
+  speedMult = s;
+  document.querySelectorAll('[id^=speed]').forEach(b => b.classList.remove('active'));
+  document.getElementById('speed' + s).classList.add('active');
+}
+
+function togglePause() {
+  paused = !paused;
+  document.getElementById('pauseBtn').textContent = paused ? '▶ Tiếp' : '⏸ Dừng';
+  document.getElementById('pauseBtn').classList.toggle('active', paused);
+}
+
+document.querySelectorAll('.stage-btn').forEach((btn, i) => {
+  btn.addEventListener('click', () => initStage(i));
+});
+
+window.addEventListener('resize', () => { resize(); initStage(currentStage); });
+
+// ── Start ──
+resize();
+initStage(0);
+frame();
+</script>
+</body>
+</html>
