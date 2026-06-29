@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Tịnh Tâm – Lễ Phật Online</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon-panel:rgba(40,18,16,.55);
+    --ivory:#f6ecd9;
+    --gold:#e8c468;
+    --gold-soft:#caa14a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;overflow:hidden;}
+  body{
+    font-family:'Be Vietnam Pro',sans-serif;
+    background:linear-gradient(180deg,#0a1330 0%,#1b2350 32%,#4a3155 58%,#caa05a 100%);
+    height:100vh;width:100vw;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #scene{position:fixed;inset:0;width:100%;height:100%;touch-action:none;display:block;cursor:grab;}
+
+  .panel{
+    background:var(--maroon-panel);
+    backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+    color:var(--ivory);
+    pointer-events:auto;
+  }
+  #hud{position:fixed;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;}
+  #counter{padding:9px 16px;display:flex;align-items:center;gap:9px;font-weight:500;font-size:13.5px;box-shadow:0 4px 18px rgba(0,0,0,.25);}
+  #counter .num{font-weight:700;font-size:17px;color:var(--gold);min-width:1.1em;text-align:right;}
+  #counter .lbl{opacity:.78;}
+  #ambientBtn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(255,255,255,.08);background:var(--maroon-panel);color:var(--ivory);cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.25);}
+  #ambientBtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  #intro{position:fixed;top:11%;left:50%;transform:translateX(-50%);text-align:center;pointer-events:none;transition:opacity .8s ease;max-width:90vw;}
+  #intro h1{font-weight:700;font-size:clamp(22px,4.6vw,34px);color:var(--ivory);margin:0 0 8px;text-shadow:0 2px 18px rgba(0,0,0,.4);letter-spacing:.01em;}
+  #intro p{margin:0 auto;max-width:340px;font-size:14px;font-weight:300;color:rgba(246,236,217,.9);text-shadow:0 1px 8px rgba(0,0,0,.35);}
+  #intro .tag{margin-top:6px;font-size:12px;font-weight:300;color:rgba(246,236,217,.62);}
+  #intro.hide{opacity:0;}
+
+  #mantra{
+    position:fixed;top:32%;left:50%;transform:translate(-50%,8px);
+    font-weight:600;font-size:clamp(20px,4vw,30px);color:var(--gold);
+    text-shadow:0 3px 20px rgba(0,0,0,.45);opacity:0;
+    transition:opacity .9s ease,transform .9s ease;pointer-events:none;letter-spacing:.02em;
+    text-align:center;
+  }
+  #mantra.show{opacity:1;transform:translate(-50%,0);}
+
+  #controls{
+    position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+    display:flex;gap:10px;pointer-events:auto;flex-wrap:wrap;justify-content:center;
+    max-width:94vw;
+  }
+  .btn{
+    background:var(--maroon-panel);backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.1);border-radius:999px;
+    color:var(--ivory);font-family:inherit;font-size:13px;font-weight:500;
+    padding:11px 18px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.28);
+    transition:background .2s ease, transform .15s ease;
+    white-space:nowrap;
+  }
+  .btn:hover{background:rgba(70,32,26,.65);}
+  .btn:active{transform:scale(.96);}
+  .btn.active{background:rgba(180,130,60,.45);border-color:rgba(232,196,104,.5);}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  #breathOverlay{
+    position:fixed;bottom:96px;left:50%;transform:translateX(-50%);
+    display:none;flex-direction:column;align-items:center;gap:10px;
+    pointer-events:none;
+  }
+  #breathOverlay.on{display:flex;}
+  #breathCircle{
+    width:64px;height:64px;border-radius:50%;
+    background:radial-gradient(circle,rgba(232,196,104,.55),rgba(232,196,104,.08) 70%);
+    border:1px solid rgba(232,196,104,.5);
+    transition:transform 4s ease-in-out;
+    transform:scale(1);
+  }
+  #breathOverlay.in #breathCircle{transform:scale(1.55);}
+  #breathLabel{color:var(--ivory);font-size:13px;font-weight:500;text-shadow:0 1px 8px rgba(0,0,0,.4);}
+
+  #wishPanel{
+    position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(8px);
+    width:min(92vw,360px);background:rgba(40,18,16,.72);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 16px;
+    display:none;flex-direction:column;gap:8px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  #wishPanel.open{display:flex;}
+  #wishPanel textarea{
+    resize:none;width:100%;height:56px;border-radius:10px;border:1px solid rgba(255,255,255,.15);
+    background:rgba(255,255,255,.06);color:var(--ivory);font-family:inherit;font-size:13.5px;
+    padding:9px 10px;outline:none;
+  }
+  #wishPanel .row{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  #wishPanel .note{font-size:10.5px;color:rgba(246,236,217,.55);line-height:1.4;}
+  #wishPanel .send{
+    background:rgba(180,130,60,.55);border:1px solid rgba(232,196,104,.5);
+    color:var(--ivory);border-radius:999px;padding:8px 16px;font-size:13px;font-weight:600;
+    cursor:pointer;font-family:inherit;
+  }
+  #wishPanel .close{background:none;border:none;color:rgba(246,236,217,.6);font-size:16px;cursor:pointer;padding:2px 6px;}
+
+  #lanterns{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+  .lantern{
+    position:absolute;bottom:120px;
+    font-size:12.5px;color:var(--ivory);text-align:center;
+    background:rgba(180,120,50,.28);border:1px solid rgba(232,196,104,.4);
+    border-radius:14px;padding:8px 14px;max-width:200px;
+    box-shadow:0 0 18px rgba(232,196,104,.35);
+    animation:riseFade 6s ease forwards;
+  }
+  @keyframes riseFade{
+    0%{opacity:0;transform:translate(-50%,0) scale(.85);}
+    12%{opacity:1;transform:translate(-50%,-40px) scale(1);}
+    100%{opacity:0;transform:translate(-50%,-560px) scale(.92);}
+  }
+
+  #credit{position:fixed;bottom:10px;right:14px;font-size:10px;color:rgba(246,236,217,.4);pointer-events:none;}
+  @media (max-width:560px){
+    #counter{padding:7px 12px;font-size:12px;}
+    #counter .num{font-size:15px;}
+    .btn{padding:10px 14px;font-size:12px;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+
+<div id="hud">
+  <div id="counter" class="panel">
+    <span>🕯️</span><span class="lbl">Hương đã thắp</span><span class="num" id="counterNum">0</span>
+  </div>
+  <button id="ambientBtn" class="panel" aria-label="Tắt / mở âm thanh">🔊</button>
+</div>
+
+<div id="intro">
+  <h1>Tịnh Tâm – Lễ Phật Online</h1>
+  <p>Thắp một nén hương, thỉnh chuông, chắp tay khấn nguyện hoặc ngồi yên theo hơi thở. Kéo ngang để nhìn quanh điện thờ.</p>
+  <div class="tag">Một góc thiền giữa ngày bận rộn 🪷</div>
+</div>
+
+<div id="mantra">Nam mô A Di Đà Phật</div>
+
+<div id="breathOverlay">
+  <div id="breathCircle"></div>
+  <div id="breathLabel">Hít vào…</div>
+</div>
+
+<div id="wishPanel">
+  <textarea id="wishText" maxlength="100" placeholder="Thầm khấn điều con mong…"></textarea>
+  <div class="note">Lời khấn chỉ hiện trên màn hình của bạn, không được lưu lại hay gửi đi đâu cả.</div>
+  <div class="row">
+    <button class="close" id="wishClose" aria-label="Đóng">✕</button>
+    <button class="send" id="wishSend">Thả lời khấn 🕊️</button>
+  </div>
+</div>
+
+<div id="controls">
+  <button class="btn" id="btnChapTay">🙏 Chắp tay khấn Phật</button>
+  <button class="btn" id="btnBreath">🪷 Hơi thở tịnh tâm</button>
+  <button class="btn" id="btnWish">✉️ Khấn nguyện</button>
+</div>
+
+<div id="lanterns"></div>
+<div id="credit">✦ không gian tịnh tâm dựng bằng Three.js</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ====================== RENDERER / SCENE / CAMERA ====================== */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputEncoding = THREE.sRGBEncoding;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x8a6a45, 7, 22);
+
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth/window.innerHeight, 0.1, 60);
+const camTarget = new THREE.Vector3(0, 1.05, -0.5);
+const camRadius = 5.6, camPhi = 0.26;
+let camTheta = 0.35, camThetaVel = 0;
+
+function updateCamera(){
+  if(!isDragging){
+    camTheta += camThetaVel;
+    camThetaVel *= 0.90;
+    if(Math.abs(camThetaVel)<0.0001) camThetaVel = 0;
+  }
+  const horiz = camRadius*Math.cos(camPhi);
+  camera.position.set(
+    camTarget.x + Math.sin(camTheta)*horiz,
+    camTarget.y + camRadius*Math.sin(camPhi),
+    camTarget.z + Math.cos(camTheta)*horiz
+  );
+  camera.lookAt(camTarget);
+}
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ====================== TEXTURES ====================== */
+function makeTexture(draw, size){
+  size = size||256;
+  const c=document.createElement('canvas'); c.width=c.height=size;
+  const ctx=c.getContext('2d'); draw(ctx,size);
+  const tex=new THREE.CanvasTexture(c); tex.encoding=THREE.sRGBEncoding; tex.anisotropy=4;
+  return tex;
+}
+const stoneTex = makeTexture((ctx,s)=>{
+  ctx.fillStyle='#5b534a'; ctx.fillRect(0,0,s,s);
+  const tiles=8, ts=s/tiles;
+  for(let i=0;i<tiles;i++)for(let j=0;j<tiles;j++){
+    const shade=Math.random()*14-7;
+    ctx.fillStyle='rgb('+(91+shade)+','+(83+shade)+','+(74+shade)+')';
+    ctx.fillRect(i*ts+1,j*ts+1,ts-2,ts-2);
+  }
+  ctx.strokeStyle='rgba(30,26,20,0.5)'; ctx.lineWidth=2;
+  for(let i=0;i<=tiles;i++){
+    ctx.beginPath(); ctx.moveTo(i*ts,0); ctx.lineTo(i*ts,s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,i*ts); ctx.lineTo(s,i*ts); ctx.stroke();
+  }
+  const cx=s/2, cy=s*0.62;
+  const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,s*0.4);
+  grad.addColorStop(0,'rgba(232,196,104,0.18)'); grad.addColorStop(1,'rgba(232,196,104,0)');
+  ctx.fillStyle=grad; ctx.fillRect(0,0,s,s);
+},512);
+
+const lacquerTex = makeTexture((ctx,s)=>{
+  ctx.fillStyle='#5e1620'; ctx.fillRect(0,0,s,s);
+  for(let i=0;i<60;i++){
+    ctx.fillStyle='rgba(0,0,0,0.06)';
+    ctx.fillRect(Math.random()*s,0,1+Math.random()*2,s);
+  }
+  ctx.strokeStyle='#caa14a'; ctx.lineWidth=s*0.025;
+  ctx.strokeRect(s*0.04,s*0.04,s*0.92,s*0.92);
+});
+
+const lotusTopTex = makeTexture((ctx,s)=>{
+  const cx=s/2, cy=s/2;
+  ctx.fillStyle='#caa14a'; ctx.fillRect(0,0,s,s);
+  const petals=14;
+  for(let i=0;i<petals;i++){
+    const a=(i/petals)*Math.PI*2;
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(a);
+    ctx.beginPath();
+    ctx.ellipse(0,-s*0.32,s*0.085,s*0.18,0,0,Math.PI*2);
+    ctx.fillStyle = i%2===0 ? '#e8c468' : '#d9af55';
+    ctx.fill();
+    ctx.restore();
+  }
+  ctx.beginPath(); ctx.arc(cx,cy,s*0.12,0,Math.PI*2);
+  ctx.fillStyle='#f3d98a'; ctx.fill();
+});
+
+const goldGlowTex = makeTexture((ctx,s)=>{
+  const cx=s/2, cy=s/2;
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,s*0.5);
+  g.addColorStop(0,'rgba(255,240,200,1)');
+  g.addColorStop(0.45,'rgba(243,217,138,0.55)');
+  g.addColorStop(1,'rgba(243,217,138,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
+},64);
+
+const softTex = makeTexture((ctx,s)=>{
+  const cx=s/2, cy=s/2;
+  const g=ctx.createRadialGradient(cx,cy,0,cx,cy,s*0.5);
+  g.addColorStop(0,'rgba(255,255,255,0.9)');
+  g.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,s,s);
+},48);
+
+/* ====================== GROUND ====================== */
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(34,34),
+  new THREE.MeshStandardMaterial({map:stoneTex, roughness:1})
+);
+ground.rotation.x=-Math.PI/2; ground.receiveShadow=true;
+scene.add(ground);
+
+/* ====================== LIGHTS ====================== */
+const hemi = new THREE.HemisphereLight(0x33406b, 0x4a3322, 0.55);
+scene.add(hemi);
+const moon = new THREE.DirectionalLight(0x9fb4ff, 0.35);
+moon.position.set(-4,7,-3); scene.add(moon);
+const warm = new THREE.DirectionalLight(0xffcf8e, 0.85);
+warm.position.set(3,6,4); warm.castShadow=true;
+warm.shadow.mapSize.set(1024,1024);
+warm.shadow.camera.left=-5; warm.shadow.camera.right=5;
+warm.shadow.camera.top=5; warm.shadow.camera.bottom=-5;
+warm.shadow.camera.near=0.5; warm.shadow.camera.far=16;
+warm.shadow.bias=-0.0015;
+scene.add(warm);
+
+/* ====================== STARS (ambient points) ====================== */
+function makeAmbientPoints(n, spread, ySpread, color, size, tex){
+  const pos=new Float32Array(n*3), seed=new Float32Array(n);
+  for(let i=0;i<n;i++){
+    pos[i*3]= (Math.random()-0.5)*spread;
+    pos[i*3+1]= Math.random()*ySpread;
+    pos[i*3+2]= (Math.random()-0.5)*spread;
+    seed[i]=Math.random()*10;
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.PointsMaterial({map:tex,color,size,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true});
+  const pts=new THREE.Points(geo,mat);
+  return {pts,geo,seed,mat};
+}
+const stars = makeAmbientPoints(70, 26, 9, 0xcfd8ff, 0.07, softTex);
+stars.pts.position.y = 4;
+scene.add(stars.pts);
+
+const embers = makeAmbientPoints(26, 5.5, 3.2, 0xffcf8a, 0.1, goldGlowTex);
+scene.add(embers.pts);
+
+/* ====================== ALTAR ====================== */
+const altarGroup = new THREE.Group();
+altarGroup.position.set(0,0,0.3);
+scene.add(altarGroup);
+
+const table = new THREE.Mesh(
+  new THREE.BoxGeometry(2.1,0.14,0.85),
+  new THREE.MeshStandardMaterial({map:lacquerTex, roughness:0.5, metalness:0.1})
+);
+table.position.y = 0.42; table.castShadow=true; table.receiveShadow=true;
+altarGroup.add(table);
+
+const legMat = new THREE.MeshStandardMaterial({color:0x4a1116, roughness:0.6});
+[[-0.9,-0.32],[0.9,-0.32],[-0.9,0.32],[0.9,0.32]].forEach(([x,z])=>{
+  const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,0.42,8), legMat);
+  leg.position.set(x,0.21,z); leg.castShadow=true;
+  altarGroup.add(leg);
+});
+
+const tableTopY = 0.49;
+
+/* incense burner + sticks (clickable) */
+const burnerMat = new THREE.MeshStandardMaterial({color:0x8a6a3a, roughness:0.4, metalness:0.55});
+const burner = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.17,0.14,20), burnerMat);
+burner.position.set(0, tableTopY+0.07, 0.1);
+burner.castShadow=true;
+altarGroup.add(burner);
+
+const incenseGroup = new THREE.Group();
+incenseGroup.position.copy(burner.position);
+const stickMat = new THREE.MeshStandardMaterial({color:0x6b4a2a, roughness:0.8});
+for(let i=0;i<5;i++){
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.008,0.46,6), stickMat);
+  const tilt = (Math.random()-0.5)*0.25;
+  stick.position.set((Math.random()-0.5)*0.06, 0.16+0.23, (Math.random()-0.5)*0.06);
+  stick.rotation.set(tilt, Math.random()*Math.PI, tilt*0.6);
+  incenseGroup.add(stick);
+}
+altarGroup.add(incenseGroup);
+const incenseTip = new THREE.Vector3();
+
+const incenseHitbox = new THREE.Mesh(
+  new THREE.BoxGeometry(0.4,0.6,0.4),
+  new THREE.MeshBasicMaterial({visible:false})
+);
+incenseHitbox.position.set(burner.position.x, burner.position.y+0.25, burner.position.z);
+altarGroup.add(incenseHitbox);
+
+/* candles (always lit, decorative) */
+const candleMat = new THREE.MeshStandardMaterial({color:0x9c1c24, roughness:0.5});
+[[-0.55,0.55],[0.55,0.55]].forEach(([x,z])=>{
+  const candle = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.03,0.28,10), candleMat);
+  candle.position.set(x, tableTopY+0.14, -z*0 + 0.18);
+  candle.castShadow=true;
+  altarGroup.add(candle);
+  const flame = new THREE.Sprite(new THREE.SpriteMaterial({map:goldGlowTex,color:0xffcf7a,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending}));
+  flame.scale.set(0.16,0.22,1);
+  flame.position.set(x, tableTopY+0.30, 0.18);
+  altarGroup.add(flame);
+  const pl = new THREE.PointLight(0xffaf5a, 0.35, 1.4);
+  pl.position.copy(flame.position);
+  altarGroup.add(pl);
+});
+
+/* offering tray + fruit (decorative) */
+const tray = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.025,20), new THREE.MeshStandardMaterial({color:0xd8c39a, roughness:0.6}));
+tray.position.set(-0.78, tableTopY+0.02, -0.05);
+altarGroup.add(tray);
+const fruitColors=[0xe0742f,0xd9b23c,0xb13a2c];
+fruitColors.forEach((c,i)=>{
+  const f=new THREE.Mesh(new THREE.SphereGeometry(0.055,12,10), new THREE.MeshStandardMaterial({color:c, roughness:0.5}));
+  f.position.set(-0.78+(i-1)*0.07, tableTopY+0.07, -0.05+(i%2)*0.05);
+  f.castShadow=true;
+  altarGroup.add(f);
+});
+
+/* singing bowl (clickable) */
+const bowlGroup = new THREE.Group();
+bowlGroup.position.set(0.78, tableTopY, 0.05);
+const cushion = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.18,0.05,16), new THREE.MeshStandardMaterial({color:0x7a2230, roughness:0.7}));
+cushion.position.y=0.025;
+bowlGroup.add(cushion);
+const bowlMesh = new THREE.Mesh(new THREE.SphereGeometry(0.13,20,14), new THREE.MeshStandardMaterial({color:0xd9b65a, roughness:0.3, metalness:0.65}));
+bowlMesh.scale.set(1,0.55,1);
+bowlMesh.position.y=0.075;
+bowlMesh.castShadow=true;
+bowlGroup.add(bowlMesh);
+const mallet = new THREE.Group();
+const malletHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.22,8), new THREE.MeshStandardMaterial({color:0x5a3a22, roughness:0.8}));
+const malletHead = new THREE.Mesh(new THREE.SphereGeometry(0.03,10,8), new THREE.MeshStandardMaterial({color:0x3a2414, roughness:0.8}));
+malletHead.position.y=0.11; malletHandle.position.y=0;
+mallet.add(malletHandle, malletHead);
+mallet.position.set(0.22,0.06,0.02); mallet.rotation.z=Math.PI/2.3;
+bowlGroup.add(mallet);
+altarGroup.add(bowlGroup);
+
+const bowlHitbox = new THREE.Mesh(new THREE.BoxGeometry(0.45,0.4,0.45), new THREE.MeshBasicMaterial({visible:false}));
+bowlHitbox.position.set(bowlGroup.position.x, bowlGroup.position.y+0.1, bowlGroup.position.z);
+altarGroup.add(bowlHitbox);
+
+/* sound-wave ripple ring on bowl ring */
+function spawnRipple(worldPos){
+  const ringMat = new THREE.MeshBasicMaterial({color:0xf3d98a, transparent:true, opacity:0.55, side:THREE.DoubleSide});
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.08,0.1,32), ringMat);
+  ring.position.copy(worldPos);
+  ring.rotation.x = -Math.PI/2;
+  scene.add(ring);
+  activeRipples.push({mesh:ring, life:0});
+}
+const activeRipples = [];
+
+/* ====================== STATUE + PEDESTAL ====================== */
+const statueGroup = new THREE.Group();
+statueGroup.position.set(0, 0, -1.15);
+scene.add(statueGroup);
+
+const flatGold = new THREE.MeshStandardMaterial({color:0xcaa14a, roughness:0.4, metalness:0.5});
+const topGold = new THREE.MeshStandardMaterial({map:lotusTopTex, roughness:0.35, metalness:0.45});
+
+let py = 0;
+const tier1 = new THREE.Mesh(new THREE.CylinderGeometry(0.62,0.66,0.16,24), flatGold);
+tier1.position.y = py + 0.08; tier1.castShadow=true; tier1.receiveShadow=true;
+statueGroup.add(tier1); py += 0.16;
+
+const tier2 = new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.55,0.14,24), flatGold);
+tier2.position.y = py + 0.07; tier2.castShadow=true;
+statueGroup.add(tier2); py += 0.14;
+
+const tier3 = new THREE.Mesh(new THREE.CylinderGeometry(0.42,0.46,0.12,24), [flatGold, topGold, flatGold]);
+tier3.position.y = py + 0.06; tier3.castShadow=true;
+statueGroup.add(tier3); py += 0.12;
+
+const robeMat = new THREE.MeshStandardMaterial({color:0xe8c468, metalness:0.55, roughness:0.28, emissive:0x3a2408, emissiveIntensity:0.35});
+
+const body = new THREE.Mesh(new THREE.SphereGeometry(0.42,28,18), robeMat);
+body.scale.set(1,0.62,0.85);
+body.position.y = py + 0.30;
+body.castShadow = true;
+statueGroup.add(body);
+
+const hands = new THREE.Mesh(new THREE.SphereGeometry(0.1,14,10), robeMat);
+hands.scale.set(1,0.55,0.7);
+hands.position.set(0, body.position.y-0.08, 0.30);
+statueGroup.add(hands);
+
+const head = new THREE.Mesh(new THREE.SphereGeometry(0.19,22,16), robeMat);
+head.position.y = body.position.y + 0.40;
+head.castShadow = true;
+statueGroup.add(head);
+
+const ushnisha = new THREE.Mesh(new THREE.SphereGeometry(0.075,14,10), robeMat);
+ushnisha.position.y = head.position.y + 0.17;
+statueGroup.add(ushnisha);
+
+const haloMat = new THREE.MeshStandardMaterial({color:0xf3d98a, emissive:0xf3d98a, emissiveIntensity:0.6, metalness:0.3, roughness:0.5});
+const halo = new THREE.Mesh(new THREE.CylinderGeometry(0.36,0.36,0.02,32), haloMat);
+halo.rotation.x = Math.PI/2;
+halo.position.set(0, head.position.y, -0.16);
+statueGroup.add(halo);
+
+const haloGlow = new THREE.Sprite(new THREE.SpriteMaterial({map:goldGlowTex, color:0xffdf9e, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending}));
+haloGlow.scale.set(1.5,1.5,1);
+haloGlow.position.set(0, head.position.y, -0.22);
+statueGroup.add(haloGlow);
+
+const statueLight = new THREE.PointLight(0xffd9a0, 0.7, 4.5);
+statueLight.position.set(0, body.position.y+0.2, 0.3);
+statueGroup.add(statueLight);
+
+/* idle gentle breathing pulse for statue */
+let idleClock = 0;
+
+/* ====================== INCENSE PARTICLES (smoke -> light) ====================== */
+const incenseParticles = [];
+function spawnIncenseParticles(originLocal){
+  const origin = altarGroup.localToWorld(originLocal.clone());
+  let spawned = 0;
+  const total = 16;
+  const timer = setInterval(()=>{
+    if(spawned >= total){ clearInterval(timer); return; }
+    spawned++;
+    const mat = new THREE.SpriteMaterial({map:softTex, color:0xcfc9c2, transparent:true, opacity:0.0, depthWrite:false});
+    const spr = new THREE.Sprite(mat);
+    spr.scale.set(0.12,0.12,1);
+    spr.position.copy(origin).add(new THREE.Vector3((Math.random()-0.5)*0.05,0,(Math.random()-0.5)*0.05));
+    scene.add(spr);
+    incenseParticles.push({
+      spr, life:0, maxLife:3.2+Math.random()*0.8,
+      swaySeed:Math.random()*10,
+      vy: 0.32+Math.random()*0.18
+    });
+  }, 150);
+}
+
+/* ====================== AUDIO ====================== */
+let audioCtx=null, masterGain=null, ambientOn=false, ambientNodes=null, muted=false;
+function ensureAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = muted?0:0.6;
+    masterGain.connect(audioCtx.destination);
+  }
+  if(audioCtx.state==='suspended') audioCtx.resume();
+}
+function playBowl(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  [220, 330, 442].forEach((f,i)=>{
+    const osc = audioCtx.createOscillator();
+    osc.type='sine'; osc.frequency.value = f + (Math.random()-0.5)*2;
+    const g = audioCtx.createGain();
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(0.22/(i+1), t+0.04);
+    g.gain.exponentialRampToValueAtTime(0.001, t+3.4-i*0.4);
+    osc.connect(g); g.connect(masterGain);
+    osc.start(t); osc.stop(t+3.6);
+  });
+}
+function playChime(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type='sine'; osc.frequency.setValueAtTime(1100,t);
+  osc.frequency.exponentialRampToValueAtTime(700,t+0.5);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.18,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.9);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(t); osc.stop(t+1);
+}
+function playGong(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type='sine'; osc.frequency.setValueAtTime(140,t);
+  osc.frequency.exponentialRampToValueAtTime(60,t+0.6);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.5,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+2.2);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(t); osc.stop(t+2.3);
+}
+function startAmbient(){
+  if(!audioCtx || ambientNodes) return;
+  const drone = audioCtx.createOscillator();
+  drone.type='sine'; drone.frequency.value=98;
+  const droneGain = audioCtx.createGain(); droneGain.gain.value=0.05;
+  drone.connect(droneGain); droneGain.connect(masterGain); drone.start();
+  const chimeTimer = setInterval(()=>{
+    if(Math.random()<0.6) playSparkle();
+  }, 7000+Math.random()*6000);
+  ambientNodes = {drone, droneGain, chimeTimer};
+}
+function stopAmbient(){
+  if(!ambientNodes) return;
+  ambientNodes.drone.stop();
+  clearInterval(ambientNodes.chimeTimer);
+  ambientNodes = null;
+}
+function playSparkle(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const notes=[660,784,880,988];
+  const f = notes[Math.floor(Math.random()*notes.length)];
+  const osc = audioCtx.createOscillator();
+  osc.type='sine'; osc.frequency.value=f;
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.08,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+1.2);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(t); osc.stop(t+1.3);
+}
+
+const ambientBtn = document.getElementById('ambientBtn');
+ambientBtn.addEventListener('click', ()=>{
+  ensureAudio();
+  ambientOn = !ambientOn;
+  ambientBtn.textContent = ambientOn ? '🔊' : '🔇';
+  if(ambientOn) startAmbient(); else stopAmbient();
+});
+
+/* ====================== UI: counter / intro / mantra ====================== */
+const counterNumEl = document.getElementById('counterNum');
+const introEl = document.getElementById('intro');
+const mantraEl = document.getElementById('mantra');
+let counterValue = 0, introHidden = false, mantraTimer = null;
+
+function hideIntro(){ if(!introHidden){ introHidden=true; introEl.classList.add('hide'); } }
+function showMantra(){
+  mantraEl.classList.add('show');
+  clearTimeout(mantraTimer);
+  mantraTimer = setTimeout(()=>mantraEl.classList.remove('show'), 2600);
+}
+
+/* ====================== ACTIONS ====================== */
+function doLightIncense(){
+  ensureAudio(); hideIntro();
+  playChime();
+  spawnIncenseParticles(new THREE.Vector3(incenseGroup.position.x,1.1,incenseGroup.position.z));
+  counterValue++; counterNumEl.textContent = counterValue;
+}
+function doRingBowl(){
+  ensureAudio(); hideIntro();
+  playBowl();
+  const wp = new THREE.Vector3(); bowlMesh.getWorldPosition(wp); wp.y = 0.02;
+  spawnRipple(wp);
+  bowlSwing = {start:performance.now(), duration:650};
+}
+let bowlSwing = null;
+function doChapTay(){
+  ensureAudio(); hideIntro();
+  playGong();
+  showMantra();
+  glowPulse = {start:performance.now(), duration:1400};
+}
+let glowPulse = null;
+
+document.getElementById('btnChapTay').addEventListener('click', doChapTay);
+document.getElementById('btnBreath').addEventListener('click', ()=>{
+  breathing = !breathing;
+  document.getElementById('btnBreath').classList.toggle('active', breathing);
+  const ov = document.getElementById('breathOverlay');
+  ov.classList.toggle('on', breathing);
+  if(breathing){ breathPhase='in'; breathStart=performance.now(); updateBreathUI(); hideIntro(); }
+});
+
+/* breathing guide */
+let breathing=false, breathPhase='in', breathStart=0;
+const IN_MS=4000, OUT_MS=6000;
+const breathOverlay = document.getElementById('breathOverlay');
+const breathLabel = document.getElementById('breathLabel');
+function updateBreathUI(){
+  if(breathPhase==='in'){ breathOverlay.classList.add('in'); breathLabel.textContent='Hít vào…'; }
+  else { breathOverlay.classList.remove('in'); breathLabel.textContent='Thở ra…'; }
+}
+function tickBreath(now){
+  if(!breathing) return;
+  const dur = breathPhase==='in' ? IN_MS : OUT_MS;
+  if(now - breathStart > dur){
+    breathPhase = breathPhase==='in' ? 'out' : 'in';
+    breathStart = now;
+    updateBreathUI();
+  }
+}
+
+/* wish panel */
+const wishPanel = document.getElementById('wishPanel');
+const btnWish = document.getElementById('btnWish');
+const wishText = document.getElementById('wishText');
+btnWish.addEventListener('click', ()=>{
+  wishPanel.classList.toggle('open');
+  btnWish.classList.toggle('active', wishPanel.classList.contains('open'));
+  if(wishPanel.classList.contains('open')) hideIntro();
+});
+document.getElementById('wishClose').addEventListener('click', ()=>{
+  wishPanel.classList.remove('open'); btnWish.classList.remove('active');
+});
+document.getElementById('wishSend').addEventListener('click', ()=>{
+  const txt = wishText.value.trim();
+  if(!txt) return;
+  ensureAudio(); playChime();
+  const lantern = document.createElement('div');
+  lantern.className='lantern';
+  lantern.textContent = '🪷 ' + txt;
+  lantern.style.left = (48+Math.random()*4)+'%';
+  document.getElementById('lanterns').appendChild(lantern);
+  setTimeout(()=>lantern.remove(), 6200);
+  wishText.value='';
+  wishPanel.classList.remove('open'); btnWish.classList.remove('active');
+});
+
+/* ====================== INPUT: tap to interact, drag to orbit ====================== */
+const raycaster = new THREE.Raycaster();
+const mouseNDC = new THREE.Vector2();
+let isDragging=false, dragMoved=false, lastX=0,lastY=0,downX=0,downY=0;
+const DRAG_SENS = 0.0042;
+const hitTargets = [incenseHitbox, bowlHitbox];
+
+function tryHit(clientX,clientY){
+  mouseNDC.x = (clientX/window.innerWidth)*2-1;
+  mouseNDC.y = -(clientY/window.innerHeight)*2+1;
+  raycaster.setFromCamera(mouseNDC, camera);
+  const hits = raycaster.intersectObjects(hitTargets);
+  if(!hits.length) return null;
+  return hits[0].object === incenseHitbox ? 'incense' : 'bowl';
+}
+
+canvas.addEventListener('pointerdown',(e)=>{
+  isDragging=true; dragMoved=false;
+  lastX=downX=e.clientX; lastY=downY=e.clientY;
+  canvas.style.cursor='grabbing';
+});
+canvas.addEventListener('pointermove',(e)=>{
+  if(!isDragging){
+    if(!('ontouchstart' in window)){
+      const h = tryHit(e.clientX,e.clientY);
+      canvas.style.cursor = h ? 'pointer':'grab';
+    }
+    return;
+  }
+  const dx = e.clientX-lastX;
+  if(Math.abs(e.clientX-downX)+Math.abs(e.clientY-downY) > 5) dragMoved = true;
+  if(dragMoved){ camTheta -= dx*DRAG_SENS*2.2; camThetaVel = -dx*DRAG_SENS*0.9; }
+  lastX=e.clientX; lastY=e.clientY;
+});
+window.addEventListener('pointerup',(e)=>{
+  if(!isDragging) return;
+  isDragging=false; canvas.style.cursor='grab';
+  if(!dragMoved){
+    const h = tryHit(e.clientX,e.clientY);
+    if(h==='incense') doLightIncense();
+    else if(h==='bowl') doRingBowl();
+  }
+});
+canvas.addEventListener('contextmenu', e=>e.preventDefault());
+
+/* ====================== MAIN LOOP ====================== */
+let lastT = performance.now();
+function animate(){
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min((now-lastT)/1000, 0.05);
+  lastT = now;
+  idleClock += dt;
+
+  tickBreath(now);
+
+  // statue idle pulse
+  const pulse = 1 + Math.sin(idleClock*0.5)*0.012;
+  statueGroup.scale.set(pulse,pulse,pulse);
+
+  // chap-tay glow pulse
+  if(glowPulse){
+    const t = (now-glowPulse.start)/glowPulse.duration;
+    if(t<=1){
+      const k = Math.sin(Math.min(t,1)*Math.PI);
+      robeMat.emissiveIntensity = 0.35 + k*0.5;
+      haloGlow.scale.setScalar(1.5 + k*0.6);
+      statueLight.intensity = 0.7 + k*0.8;
+    } else {
+      robeMat.emissiveIntensity = 0.35; haloGlow.scale.setScalar(1.5); statueLight.intensity=0.7;
+      glowPulse = null;
+    }
+  }
+
+  // bowl swing
+  if(bowlSwing){
+    const t=(now-bowlSwing.start)/bowlSwing.duration;
+    if(t<=1){
+      bowlGroup.rotation.z = Math.sin(Math.min(t,1)*Math.PI)*0.12;
+    } else { bowlGroup.rotation.z = 0; bowlSwing=null; }
+  }
+
+  // ripples
+  for(let i=activeRipples.length-1;i>=0;i--){
+    const r = activeRipples[i];
+    r.life += dt;
+    const s = 1 + r.life*2.4;
+    r.mesh.scale.set(s,s,s);
+    r.mesh.material.opacity = Math.max(0, 0.55 - r.life*0.5);
+    if(r.life > 1.1){ scene.remove(r.mesh); r.mesh.geometry.dispose(); r.mesh.material.dispose(); activeRipples.splice(i,1); }
+  }
+
+  // incense particles: smoke -> light
+  for(let i=incenseParticles.length-1;i>=0;i--){
+    const p = incenseParticles[i];
+    p.life += dt;
+    const lt = p.life/p.maxLife;
+    p.spr.position.y += p.vy*dt;
+    p.spr.position.x += Math.sin(now*0.001+p.swaySeed)*0.0009;
+    const grow = 0.12 + lt*0.22;
+    p.spr.scale.set(grow,grow,1);
+    const op = lt<0.15 ? lt/0.15 : (lt>0.75 ? Math.max(0,1-(lt-0.75)/0.25) : 1);
+    p.spr.material.opacity = op*0.8;
+    const cr = 0xcf, cg = 0xc9, cb = 0xc2;
+    const gr = 0xf3, gg = 0xd9, gb = 0x8a;
+    const mix = Math.min(lt*1.4,1);
+    const r = Math.round(cr+(gr-cr)*mix), g = Math.round(cg+(gg-cg)*mix), b = Math.round(cb+(gb-cb)*mix);
+    p.spr.material.color.setRGB(r/255,g/255,b/255);
+    if(p.life > p.maxLife){
+      scene.remove(p.spr); p.spr.material.dispose();
+      incenseParticles.splice(i,1);
+    }
+  }
+
+  // ambient points drift
+  [stars, embers].forEach(group=>{
+    const arr = group.geo.attributes.position.array;
+    for(let i=0;i<arr.length/3;i++){
+      let y = arr[i*3+1] + (reducedMotion?0.02:0.05)*dt;
+      const maxY = group===stars ? 9 : 3.2;
+      if(y>maxY) y = 0;
+      arr[i*3+1] = y;
+      arr[i*3] += Math.sin(now*0.0003+group.seed[i])*0.0006;
+    }
+    group.geo.attributes.position.needsUpdate = true;
+  });
+  stars.mat.opacity = 0.7 + Math.sin(idleClock*0.3)*0.25;
+
+  updateCamera();
+  renderer.render(scene, camera);
+}
+animate();
+
+})();
+</script>
+</body>
+</html>
