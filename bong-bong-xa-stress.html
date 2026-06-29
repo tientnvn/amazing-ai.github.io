@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Bong Bóng Khí — Xả Stress</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1F24;
+    --label-bg:#14171B;
+    --bubble-hi:#EAFBF7;
+    --bubble:#BFE8E0;
+    --bubble-deep:#6FB6AC;
+    --hollow:#262C33;
+    --hollow-deep:#0F1216;
+    --accent:#FFB454;
+    --ink:#ECEDEE;
+    --ink-dim:#7E8790;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; height:100%; overflow:hidden;
+    background:var(--bg); color:var(--ink);
+    font-family:'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .stage{
+    position:relative; height:100vh; width:100vw;
+    display:flex; flex-direction:column;
+    user-select:none;
+  }
+  .stage::before{
+    content:''; position:absolute; inset:0; pointer-events:none; opacity:.035;
+    background:repeating-linear-gradient(135deg, #fff 0 2px, transparent 2px 14px);
+  }
+
+  .label-strip{
+    position:relative; z-index:2;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 16px;
+    background:var(--label-bg);
+    border-bottom:1px dashed rgba(255,255,255,.14);
+    font-weight:600; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--ink-dim);
+    flex-wrap:wrap; gap:8px;
+  }
+  .stamp{
+    border:1px dashed var(--ink-dim); border-radius:3px;
+    padding:3px 9px; transform:rotate(-3deg);
+    opacity:.6; font-weight:800; letter-spacing:.16em; font-size:.68rem;
+    white-space:nowrap;
+  }
+  .meta{ display:flex; align-items:center; gap:16px; }
+  .meta-item strong{ color:var(--ink); font-weight:800; }
+  .meta-item.accent strong{ color:var(--accent); display:inline-block; }
+  .meta-item.accent strong.bump{ animation:bump .25s ease; }
+  @keyframes bump{ 0%{transform:scale(1)} 40%{transform:scale(1.4); color:#FFD08A;} 100%{transform:scale(1)} }
+
+  .new-sheet-btn{
+    background:none; border:1px dashed var(--ink-dim); color:var(--ink-dim);
+    font-family:inherit; font-weight:600; letter-spacing:.08em; text-transform:uppercase;
+    font-size:.68rem; padding:5px 10px; border-radius:3px; cursor:pointer;
+  }
+  .new-sheet-btn:hover{ color:var(--ink); border-color:var(--ink); }
+  .new-sheet-btn:focus-visible, .mute-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .mute-btn{
+    background:none; border:none; color:var(--ink-dim); cursor:pointer;
+    font-size:.95rem; padding:2px 4px; line-height:1;
+  }
+  .mute-btn:hover{ color:var(--ink); }
+
+  .sheet-wrap{
+    position:relative; flex:1; overflow:hidden;
+  }
+  .sheet{
+    position:absolute; inset:0;
+    display:grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    grid-template-rows: repeat(var(--rows), 1fr);
+    gap:6px; padding:10px;
+    touch-action:none;
+    transition:opacity .26s ease, transform .26s ease;
+  }
+  .sheet.fading{ opacity:0; transform:scale(.96); }
+
+  .bubble{
+    position:relative; border-radius:50%; cursor:pointer;
+    background:radial-gradient(circle at var(--hx,35%) var(--hy,30%), var(--bubble-hi), var(--bubble) 52%, var(--bubble-deep) 100%);
+    box-shadow:0 2px 4px rgba(0,0,0,.35), inset 0 -3px 5px rgba(0,0,0,.12), inset 0 2px 3px rgba(255,255,255,.55);
+  }
+  .bubble.popped{
+    cursor:default; transform:scale(.84);
+    background:radial-gradient(circle at 50% 45%, var(--hollow), var(--hollow-deep) 100%);
+    box-shadow:inset 0 3px 6px rgba(0,0,0,.65), inset 0 -1px 2px rgba(255,255,255,.04);
+  }
+  .bubble.pop-flash::after{
+    content:''; position:absolute; inset:-35%; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, var(--accent), transparent 60%);
+    opacity:.9; animation:flash .35s ease-out forwards;
+  }
+  @keyframes flash{ to{ opacity:0; transform:scale(1.7); } }
+  .bubble.jiggle{ animation:jiggle .2s ease; }
+  @keyframes jiggle{ 0%,100%{transform:scale(1)} 50%{transform:scale(.93)} }
+
+  @media (prefers-reduced-motion: reduce){
+    .sheet{ transition:none; }
+    .bubble.pop-flash::after{ animation:none; display:none; }
+    .bubble.jiggle{ animation:none; }
+    .meta-item.accent strong.bump{ animation:none; }
+  }
+
+  .hint{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:0 24px; pointer-events:none; z-index:1;
+    font-weight:800; font-size:clamp(1rem, 3.2vw, 1.7rem); color:rgba(255,255,255,.5);
+    transition:opacity .5s ease;
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="label-strip">
+      <span class="stamp">XẢ STRESS™</span>
+      <div class="meta">
+        <span class="meta-item">LÔ <strong id="lotNum">—</strong></span>
+        <span class="meta-item">TẤM <strong id="sheetNum">1</strong></span>
+        <span class="meta-item accent">ĐÃ NỔ <strong id="popCount">0</strong></span>
+        <button class="new-sheet-btn" id="newSheetBtn" type="button">Tấm mới</button>
+        <button class="mute-btn" id="muteBtn" type="button" aria-label="Tắt/mở âm thanh">🔊</button>
+      </div>
+    </div>
+    <div class="sheet-wrap">
+      <div class="hint" id="hint">Bấm hoặc kéo<br>để bóp nổ bong bóng</div>
+      <div class="sheet" id="sheet"></div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const sheetEl = document.getElementById('sheet');
+  const popCountEl = document.getElementById('popCount');
+  const sheetNumEl = document.getElementById('sheetNum');
+  const lotNumEl = document.getElementById('lotNum');
+  const hintEl = document.getElementById('hint');
+  const newSheetBtn = document.getElementById('newSheetBtn');
+  const muteBtn = document.getElementById('muteBtn');
+
+  lotNumEl.textContent = String(Math.floor(100 + Math.random()*900));
+
+  let cols = 0, rows = 0, total = 0, poppedInSheet = 0;
+  let totalPopped = 0, sheetNum = 1;
+  let dragging = false, hintGone = false, soundOn = true;
+  let resizeTimer = null;
+  let audioCtx = null;
+
+  function ensureAudio(){
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function playPop(){
+    if (!soundOn) return;
+    ensureAudio();
+    const t = audioCtx.currentTime;
+    const baseFreq = 900 + Math.random()*500;
+
+    const osc = audioCtx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(baseFreq, t);
+    osc.frequency.exponentialRampToValueAtTime(baseFreq*0.35, t+0.07);
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(0.35, t+0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t+0.09);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(t); osc.stop(t+0.1);
+
+    const bufSize = Math.floor(audioCtx.sampleRate*0.05);
+    const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i=0;i<bufSize;i++) data[i] = (Math.random()*2-1) * (1 - i/bufSize);
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'highpass'; filter.frequency.value = 2500;
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.12, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.0001, t+0.05);
+    noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+    noise.start(t);
+  }
+
+  function buildSheet(){
+    const rect = sheetEl.parentElement.getBoundingClientRect();
+    const cell = 46, gap = 6;
+    cols = Math.max(6, Math.floor((rect.width + gap) / (cell + gap)));
+    rows = Math.max(6, Math.floor((rect.height + gap) / (cell + gap)));
+    total = cols * rows;
+    poppedInSheet = 0;
+    sheetEl.style.setProperty('--cols', cols);
+    sheetEl.style.setProperty('--rows', rows);
+    sheetEl.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    for (let i=0;i<total;i++){
+      const b = document.createElement('div');
+      b.className = 'bubble';
+      b.style.setProperty('--hx', (25 + Math.random()*30) + '%');
+      b.style.setProperty('--hy', (20 + Math.random()*25) + '%');
+      b.dataset.index = i;
+      frag.appendChild(b);
+    }
+    sheetEl.appendChild(frag);
+  }
+
+  function jiggleNeighbors(index){
+    const row = Math.floor(index / cols);
+    const candidates = [];
+    if (Math.floor((index-1)/cols) === row) candidates.push(index-1);
+    if (Math.floor((index+1)/cols) === row) candidates.push(index+1);
+    candidates.push(index-cols, index+cols);
+    candidates.forEach(n=>{
+      if (n<0 || n>=total) return;
+      const el = sheetEl.children[n];
+      if (el && !el.classList.contains('popped')){
+        el.classList.add('jiggle');
+        setTimeout(()=>el.classList.remove('jiggle'), 200);
+      }
+    });
+  }
+
+  function dismissHint(){
+    if (hintGone) return;
+    hintGone = true;
+    hintEl.style.opacity = '0';
+    setTimeout(()=>hintEl.remove(), 500);
+  }
+
+  function pop(el){
+    if (!el || el.classList.contains('popped')) return;
+    dismissHint();
+    el.classList.add('popped','pop-flash');
+    setTimeout(()=>el.classList.remove('pop-flash'), 350);
+    jiggleNeighbors(Number(el.dataset.index));
+    poppedInSheet++;
+    totalPopped++;
+    popCountEl.textContent = totalPopped;
+    popCountEl.classList.remove('bump'); void popCountEl.offsetWidth; popCountEl.classList.add('bump');
+    playPop();
+    if (poppedInSheet >= total) setTimeout(refillSheet, 380);
+  }
+
+  function refillSheet(){
+    sheetEl.classList.add('fading');
+    setTimeout(()=>{
+      sheetNum++; sheetNumEl.textContent = sheetNum;
+      buildSheet();
+      sheetEl.classList.remove('fading');
+    }, 260);
+  }
+
+  function popAtPoint(x, y){
+    const el = document.elementFromPoint(x, y);
+    if (el && el.classList.contains('bubble')) pop(el);
+  }
+
+  sheetEl.addEventListener('pointerdown', e=>{
+    dragging = true;
+    popAtPoint(e.clientX, e.clientY);
+  });
+  sheetEl.addEventListener('pointermove', e=>{
+    if (!dragging) return;
+    popAtPoint(e.clientX, e.clientY);
+  });
+  window.addEventListener('pointerup', ()=> dragging = false);
+  window.addEventListener('pointercancel', ()=> dragging = false);
+
+  newSheetBtn.addEventListener('click', ()=>{ if (poppedInSheet < total) refillSheet(); });
+  muteBtn.addEventListener('click', ()=>{
+    soundOn = !soundOn;
+    muteBtn.textContent = soundOn ? '🔊' : '🔈';
+  });
+
+  window.addEventListener('resize', ()=>{
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(buildSheet, 200);
+  });
+
+  buildSheet();
+})();
+</script>
+</body>
+</html>
