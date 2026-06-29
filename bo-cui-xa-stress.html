@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Bổ Củi Xả Stress</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --walnut:#241710;
+    --walnut-panel:rgba(36,24,16,.55);
+    --cream:#f7ecdd;
+    --amber:#e8a33d;
+    --amber-hot:#ff5d3d;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;height:100%;overflow:hidden;}
+  body{
+    font-family:'Work Sans',sans-serif;
+    background:linear-gradient(180deg,#241c45 0%,#6b3f55 32%,#c9683f 60%,#ffd9a0 100%);
+    height:100vh;width:100vw;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #scene{
+    position:fixed;inset:0;width:100%;height:100%;
+    touch-action:none;display:block;cursor:grab;
+  }
+  #hud{
+    position:fixed;top:14px;left:14px;right:14px;
+    display:flex;justify-content:space-between;align-items:flex-start;
+    pointer-events:none;
+  }
+  .panel{
+    background:var(--walnut-panel);
+    backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+    color:var(--cream);
+    pointer-events:auto;
+  }
+  #counter{
+    padding:9px 16px;
+    display:flex;align-items:center;gap:10px;
+    font-weight:600;font-size:14px;
+    box-shadow:0 4px 18px rgba(0,0,0,.25);
+  }
+  #counter .axe-ico{font-size:18px;line-height:1;}
+  #counter .num{
+    font-family:'Fraunces',serif;font-weight:700;font-size:20px;
+    color:var(--amber);min-width:1.2em;text-align:right;
+  }
+  #counter .lbl{opacity:.75;font-size:12px;letter-spacing:.03em;text-transform:uppercase;}
+  #muteBtn{
+    width:42px;height:42px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;border:1px solid rgba(255,255,255,.08);
+    background:var(--walnut-panel);color:var(--cream);
+    cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.25);
+  }
+  #muteBtn:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+  #intro{
+    position:fixed;top:14%;left:50%;transform:translateX(-50%);
+    text-align:center;pointer-events:none;
+    transition:opacity .7s ease;
+    max-width:90vw;
+  }
+  #intro h1{
+    font-family:'Fraunces',serif;font-weight:700;
+    font-size:clamp(26px,5.2vw,42px);
+    color:var(--cream);margin:0 0 8px;
+    text-shadow:0 2px 18px rgba(0,0,0,.35);
+  }
+  #intro p{
+    margin:0 auto;max-width:320px;font-size:14.5px;
+    color:rgba(247,236,221,.88);text-shadow:0 1px 8px rgba(0,0,0,.3);
+  }
+  #intro .tag{
+    margin-top:6px;font-size:12px;font-style:italic;
+    color:rgba(247,236,221,.6);
+  }
+  #intro.hide{opacity:0;}
+  #combo{
+    position:fixed;top:22%;left:50%;transform:translate(-50%,-10px) scale(.8);
+    font-family:'Fraunces',serif;font-weight:800;font-size:38px;
+    color:var(--amber);text-shadow:0 3px 16px rgba(0,0,0,.35);
+    opacity:0;transition:opacity .25s ease,transform .25s ease;
+    pointer-events:none;
+  }
+  #combo.show{opacity:1;transform:translate(-50%,0) scale(1);}
+  #popups{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
+  .popup{
+    position:absolute;font-family:'Work Sans',sans-serif;font-weight:700;
+    font-size:17px;color:var(--amber);
+    text-shadow:0 1px 6px rgba(0,0,0,.4);
+    transform:translate(-50%,-50%);
+    animation:floatUp .9s ease forwards;
+  }
+  @keyframes floatUp{
+    0%{opacity:1;transform:translate(-50%,-50%) translateY(0);}
+    100%{opacity:0;transform:translate(-50%,-50%) translateY(-58px);}
+  }
+  #credit{
+    position:fixed;bottom:10px;right:14px;font-size:10.5px;
+    color:rgba(247,236,221,.4);pointer-events:none;letter-spacing:.02em;
+  }
+  @media (max-width:520px){
+    #counter{padding:7px 12px;font-size:12.5px;}
+    #counter .num{font-size:17px;}
+    #muteBtn{width:38px;height:38px;font-size:16px;}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="scene"></canvas>
+
+<div id="hud">
+  <div id="counter" class="panel">
+    <span class="axe-ico">🪓</span>
+    <span class="lbl">Đã bổ</span>
+    <span class="num" id="counterNum">0</span>
+  </div>
+  <button id="muteBtn" class="panel" aria-label="Tắt / mở âm thanh">🔊</button>
+</div>
+
+<div id="intro">
+  <h1>Bổ Củi Xả Stress</h1>
+  <p>Bấm vào khúc gỗ để bổ — kéo ngang để xoay góc nhìn quanh gốc cây.</p>
+  <div class="tag">Gỗ ảo, không hao cây thật 🌲</div>
+</div>
+
+<div id="combo"></div>
+<div id="popups"></div>
+<div id="credit">✦ làm bằng Three.js — cảm hứng từ ý tưởng bổ củi 3D</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+"use strict";
+
+/* ====================== CONFIG ====================== */
+const STUMP_R_TOP=0.5, STUMP_R_BOT=0.58, STUMP_H=0.9;
+const LOG_R=0.32, LOG_H=0.95;
+const LOG_Y = STUMP_H + LOG_H/2;
+const GRAVITY = 6.4;
+const MAX_PILE = 16;
+const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ====================== BASIC SETUP ====================== */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+renderer.setPixelRatio(Math.min(window.devicePixelRatio||1, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.outputEncoding = THREE.sRGBEncoding;
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0xdb8350, 7, 21);
+
+const camera = new THREE.PerspectiveCamera(42, window.innerWidth/window.innerHeight, 0.1, 60);
+const camTarget = new THREE.Vector3(0, 1.2, 0);
+const camRadius = 6.2, camPhi = 0.30;
+let camTheta = 0.55, camThetaVel = 0;
+let shakeTime = 0, shakeMag = 0;
+
+function updateCamera(dt){
+  if(!isDragging){
+    camTheta += camThetaVel;
+    camThetaVel *= 0.90;
+    if(Math.abs(camThetaVel) < 0.0001) camThetaVel = 0;
+  }
+  const horiz = camRadius * Math.cos(camPhi);
+  let sx = Math.sin(camTheta) * horiz;
+  let sz = Math.cos(camTheta) * horiz;
+  let sy = camTarget.y + camRadius * Math.sin(camPhi);
+
+  if(shakeTime > 0){
+    shakeTime -= dt;
+    const k = Math.max(0, shakeTime) * shakeMag;
+    sx += (Math.random()-0.5) * k;
+    sy += (Math.random()-0.5) * k;
+  }
+  camera.position.set(sx, sy, sz);
+  camera.lookAt(camTarget);
+}
+function triggerShake(mag, dur){
+  if(reducedMotion) return;
+  shakeMag = mag; shakeTime = dur;
+}
+
+window.addEventListener('resize', ()=>{
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ====================== PROCEDURAL TEXTURES ====================== */
+function makeTexture(draw, size){
+  size = size || 256;
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  draw(ctx, size);
+  const tex = new THREE.CanvasTexture(c);
+  tex.encoding = THREE.sRGBEncoding;
+  tex.anisotropy = 4;
+  return tex;
+}
+
+const barkTex = makeTexture((ctx,s)=>{
+  ctx.fillStyle = '#4a3324'; ctx.fillRect(0,0,s,s);
+  for(let i=0;i<150;i++){
+    const x = Math.random()*s, w = 1+Math.random()*3;
+    ctx.fillStyle = Math.random()<0.5 ? 'rgba(18,10,6,0.35)' : 'rgba(120,85,55,0.22)';
+    ctx.fillRect(x,0,w,s);
+  }
+  for(let i=0;i<36;i++){
+    const y = Math.random()*s;
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.fillRect(0,y,s,1+Math.random()*2);
+  }
+});
+
+const ringTex = makeTexture((ctx,s)=>{
+  const cx=s/2, cy=s/2;
+  ctx.fillStyle = '#caa063'; ctx.fillRect(0,0,s,s);
+  const rings = 14;
+  for(let i=rings;i>0;i--){
+    const r = (i/rings) * (s*0.47);
+    ctx.beginPath();
+    ctx.strokeStyle = i%2===0 ? 'rgba(120,80,40,0.5)' : 'rgba(180,130,70,0.4)';
+    ctx.lineWidth = 1+Math.random()*2;
+    ctx.ellipse(cx+(Math.random()-0.5)*4, cy+(Math.random()-0.5)*4, r, r, 0, 0, Math.PI*2);
+    ctx.stroke();
+  }
+  for(let i=0;i<6;i++){
+    const a = Math.random()*Math.PI*2;
+    ctx.strokeStyle = 'rgba(90,60,30,0.35)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx,cy);
+    ctx.lineTo(cx+Math.cos(a)*s*0.46, cy+Math.sin(a)*s*0.46);
+    ctx.stroke();
+  }
+});
+
+const freshTex = makeTexture((ctx,s)=>{
+  const cx=s/2, cy=s/2;
+  const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,s*0.5);
+  grad.addColorStop(0,'#fdf3df'); grad.addColorStop(1,'#ecd8b3');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,s,s);
+  const rings = 16;
+  for(let i=rings;i>0;i--){
+    const r = (i/rings) * (s*0.48);
+    ctx.beginPath();
+    ctx.strokeStyle = i%2===0 ? 'rgba(190,150,95,0.45)' : 'rgba(220,185,135,0.35)';
+    ctx.lineWidth = 1+Math.random();
+    ctx.ellipse(cx+(Math.random()-0.5)*3, cy+(Math.random()-0.5)*3, r, r, 0, 0, Math.PI*2);
+    ctx.stroke();
+  }
+});
+
+const groundTex = makeTexture((ctx,s)=>{
+  ctx.fillStyle = '#3a4a2c'; ctx.fillRect(0,0,s,s);
+  for(let i=0;i<900;i++){
+    const x=Math.random()*s, y=Math.random()*s;
+    ctx.fillStyle = Math.random()<0.5 ? 'rgba(70,90,45,0.5)' : 'rgba(25,35,18,0.4)';
+    ctx.fillRect(x,y,1.5+Math.random()*2,1.5+Math.random()*2);
+  }
+  const cx=s/2, cy=s/2;
+  const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,s*0.34);
+  grad.addColorStop(0,'rgba(74,54,36,0.95)');
+  grad.addColorStop(0.75,'rgba(74,54,36,0.65)');
+  grad.addColorStop(1,'rgba(74,54,36,0)');
+  ctx.fillStyle = grad; ctx.beginPath(); ctx.arc(cx,cy,s*0.34,0,Math.PI*2); ctx.fill();
+}, 512);
+
+const emberTex = makeTexture((ctx,s)=>{
+  const cx=s/2, cy=s/2;
+  const grad = ctx.createRadialGradient(cx,cy,0,cx,cy,s*0.5);
+  grad.addColorStop(0,'rgba(255,255,255,1)');
+  grad.addColorStop(0.4,'rgba(255,210,140,0.8)');
+  grad.addColorStop(1,'rgba(255,210,140,0)');
+  ctx.fillStyle = grad; ctx.fillRect(0,0,s,s);
+}, 64);
+
+/* ====================== MATERIALS (shared, non-fading) ====================== */
+const matSide = new THREE.MeshStandardMaterial({map:barkTex, roughness:0.95});
+const matCap  = new THREE.MeshStandardMaterial({map:ringTex, roughness:0.85});
+const matFresh = new THREE.MeshStandardMaterial({map:freshTex, roughness:0.7});
+const chipMats = [
+  new THREE.MeshStandardMaterial({color:0x6b4423, roughness:0.9}),
+  new THREE.MeshStandardMaterial({color:0xead7ab, roughness:0.7})
+];
+
+/* ====================== SCENE: GROUND, STUMP, LIGHTS ====================== */
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(34,34),
+  new THREE.MeshStandardMaterial({map:groundTex, roughness:1})
+);
+ground.rotation.x = -Math.PI/2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const stump = new THREE.Mesh(
+  new THREE.CylinderGeometry(STUMP_R_TOP, STUMP_R_BOT, STUMP_H, 22, 1, false),
+  [matSide, matCap, matSide]
+);
+stump.position.y = STUMP_H/2;
+stump.castShadow = true; stump.receiveShadow = true;
+scene.add(stump);
+
+const hemi = new THREE.HemisphereLight(0xfff1d9, 0x4a3b2a, 0.65);
+scene.add(hemi);
+const sun = new THREE.DirectionalLight(0xffd9a0, 1.2);
+sun.position.set(5,8,4);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024,1024);
+sun.shadow.camera.left=-5; sun.shadow.camera.right=5;
+sun.shadow.camera.top=5; sun.shadow.camera.bottom=-5;
+sun.shadow.camera.near=0.5; sun.shadow.camera.far=16;
+sun.shadow.bias=-0.0015;
+scene.add(sun);
+const fill = new THREE.PointLight(0xbcd4ff, 0.28, 14);
+fill.position.set(-2,2.4,4);
+scene.add(fill);
+
+/* ambient embers */
+const EMBER_N = 36;
+const emberPos = new Float32Array(EMBER_N*3);
+const emberSeed = new Float32Array(EMBER_N);
+for(let i=0;i<EMBER_N;i++){
+  emberPos[i*3+0] = (Math.random()-0.5)*6;
+  emberPos[i*3+1] = Math.random()*3.2;
+  emberPos[i*3+2] = (Math.random()-0.5)*6;
+  emberSeed[i] = Math.random()*10;
+}
+const emberGeo = new THREE.BufferGeometry();
+emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos,3));
+const emberMat = new THREE.PointsMaterial({
+  map:emberTex, color:0xffcf8a, size:0.11, transparent:true,
+  depthWrite:false, blending:THREE.AdditiveBlending, sizeAttenuation:true
+});
+const embers = new THREE.Points(emberGeo, emberMat);
+scene.add(embers);
+
+/* ====================== AXE ====================== */
+const axe = new THREE.Group();
+const handleMat = new THREE.MeshStandardMaterial({color:0x7a5230, roughness:0.85});
+const headMat = new THREE.MeshStandardMaterial({color:0x3b3f45, roughness:0.35, metalness:0.6});
+const edgeMat = new THREE.MeshStandardMaterial({color:0xe8a33d, roughness:0.3, metalness:0.5});
+
+const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.045,1.05,8), handleMat);
+handle.position.y = -0.525;
+handle.castShadow = true;
+axe.add(handle);
+
+const head = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.1,0.06), headMat);
+head.position.set(0,-1.0,0);
+head.castShadow = true;
+axe.add(head);
+
+const edge = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.018,0.07), edgeMat);
+edge.position.set(0,-1.05,0);
+axe.add(edge);
+
+axe.position.set(0.05, LOG_Y + 1.55, 0.05);
+const AXE_REST = -0.55, AXE_IMPACT = 0.42;
+axe.rotation.x = AXE_REST;
+scene.add(axe);
+
+let axeSwing = null; // {start, duration, impactFired, hitPoint}
+
+/* ====================== LOG BUILDING ====================== */
+function buildWholeLog(){
+  const geo = new THREE.CylinderGeometry(LOG_R, LOG_R, LOG_H, 28, 1, false);
+  const mesh = new THREE.Mesh(geo, [matSide, matCap, matCap]);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  return mesh;
+}
+function buildHalfLog(thetaStart, scale){
+  scale = scale || 1;
+  const group = new THREE.Group();
+  const sideMat = matSide.clone(), capMat = matCap.clone(), cutMat = matFresh.clone();
+  cutMat.side = THREE.DoubleSide;
+  const geo = new THREE.CylinderGeometry(LOG_R*scale, LOG_R*scale, LOG_H*scale, 16, 1, false, thetaStart, Math.PI);
+  const mesh = new THREE.Mesh(geo, [sideMat, capMat, capMat]);
+  mesh.castShadow = true; mesh.receiveShadow = true;
+  const cutGeo = new THREE.PlaneGeometry(LOG_R*2*scale, LOG_H*scale);
+  const cutMesh = new THREE.Mesh(cutGeo, cutMat);
+  group.add(mesh, cutMesh);
+  group.userData.mats = [sideMat, capMat, cutMat];
+  return group;
+}
+function disposeObj(obj){
+  obj.traverse(n=>{
+    if(n.geometry) n.geometry.dispose();
+  });
+  if(obj.userData && obj.userData.mats){
+    obj.userData.mats.forEach(m=>m.dispose());
+  }
+}
+
+let wholeLog = null;
+function spawnNewLog(){
+  if(wholeLog){ scene.remove(wholeLog); disposeObj(wholeLog); }
+  wholeLog = buildWholeLog();
+  wholeLog.position.set(0, LOG_Y, 0);
+  wholeLog.scale.setScalar(0.001);
+  wholeLog.userData.spawnStart = performance.now();
+  scene.add(wholeLog);
+}
+spawnNewLog();
+
+const activeHalves = [];
+const pile = [];
+function addPilePiece(pos){
+  if(pile.length >= MAX_PILE){
+    const old = pile.shift();
+    scene.remove(old); disposeObj(old);
+  }
+  const piece = buildHalfLog(Math.random()<0.5?0:Math.PI, 0.45+Math.random()*0.15);
+  piece.position.set(
+    pos.x*0.35 + (Math.random()-0.5)*0.5,
+    0.05 + pile.length*0.012,
+    pos.z*0.35 + (Math.random()-0.5)*0.5
+  );
+  piece.rotation.set((Math.random()-0.5)*0.6, Math.random()*Math.PI*2, (Math.random()-0.5)*0.6 + Math.PI/2);
+  scene.add(piece);
+  pile.push(piece);
+}
+
+const activeChips = [];
+function spawnChips(pos){
+  const n = 10 + Math.floor(Math.random()*5);
+  for(let i=0;i<n;i++){
+    const mat = chipMats[i%2];
+    const geo = new THREE.TetrahedronGeometry(0.035+Math.random()*0.05);
+    const m = new THREE.Mesh(geo, mat);
+    m.castShadow = false;
+    m.position.copy(pos);
+    const a = Math.random()*Math.PI*2;
+    const spd = 1.2+Math.random()*1.8;
+    m.userData.vel = new THREE.Vector3(Math.cos(a)*spd, 1.6+Math.random()*1.8, Math.sin(a)*spd);
+    m.userData.angVel = new THREE.Vector3((Math.random()-0.5)*10,(Math.random()-0.5)*10,(Math.random()-0.5)*10);
+    m.userData.life = 0;
+    scene.add(m);
+    activeChips.push(m);
+  }
+}
+
+function doActualSplit(hitPoint){
+  const pos = wholeLog ? wholeLog.position.clone() : new THREE.Vector3(0,LOG_Y,0);
+  if(wholeLog){ scene.remove(wholeLog); disposeObj(wholeLog); wholeLog = null; }
+
+  const a = Math.random()*Math.PI*2;
+  const dir = new THREE.Vector3(Math.cos(a),0,Math.sin(a));
+
+  const h1 = buildHalfLog(0);
+  h1.position.copy(pos);
+  h1.userData.vel = dir.clone().multiplyScalar(1.5+Math.random()*0.6).add(new THREE.Vector3(0,2.3+Math.random()*0.7,0));
+  h1.userData.angVel = new THREE.Vector3((Math.random()-0.5)*6,(Math.random()-0.5)*6,(Math.random()-0.5)*6);
+  h1.userData.life = 0;
+  scene.add(h1); activeHalves.push(h1);
+
+  const h2 = buildHalfLog(Math.PI);
+  h2.position.copy(pos);
+  h2.userData.vel = dir.clone().multiplyScalar(-(1.5+Math.random()*0.6)).add(new THREE.Vector3(0,2.1+Math.random()*0.7,0));
+  h2.userData.angVel = new THREE.Vector3((Math.random()-0.5)*6,(Math.random()-0.5)*6,(Math.random()-0.5)*6);
+  h2.userData.life = 0;
+  scene.add(h2); activeHalves.push(h2);
+
+  spawnNewLog();
+}
+
+/* ====================== SOUND ====================== */
+let audioCtx=null, masterGain=null, noiseBuffer=null, muted=false;
+function createNoiseBuffer(ctx,dur){
+  const n = Math.floor(ctx.sampleRate*dur);
+  const buf = ctx.createBuffer(1,n,ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i=0;i<n;i++) d[i] = Math.random()*2-1;
+  return buf;
+}
+function ensureAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = muted ? 0 : 0.55;
+    masterGain.connect(audioCtx.destination);
+    noiseBuffer = createNoiseBuffer(audioCtx,0.3);
+  }
+  if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playSwing(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(420,t);
+  osc.frequency.exponentialRampToValueAtTime(120,t+0.13);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.16,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.14);
+  osc.connect(g); g.connect(masterGain);
+  osc.start(t); osc.stop(t+0.15);
+}
+function playImpact(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(170,t);
+  osc.frequency.exponentialRampToValueAtTime(45,t+0.12);
+  const og = audioCtx.createGain();
+  og.gain.setValueAtTime(0.9,t);
+  og.gain.exponentialRampToValueAtTime(0.001,t+0.16);
+  osc.connect(og); og.connect(masterGain);
+  osc.start(t); osc.stop(t+0.18);
+
+  const src = audioCtx.createBufferSource();
+  src.buffer = noiseBuffer;
+  const filt = audioCtx.createBiquadFilter();
+  filt.type = 'bandpass'; filt.frequency.value = 1800; filt.Q.value = 0.8;
+  const ng = audioCtx.createGain();
+  ng.gain.setValueAtTime(0.5,t);
+  ng.gain.exponentialRampToValueAtTime(0.001,t+0.18);
+  src.connect(filt); filt.connect(ng); ng.connect(masterGain);
+  src.start(t); src.stop(t+0.2);
+}
+const muteBtn = document.getElementById('muteBtn');
+muteBtn.addEventListener('click', ()=>{
+  muted = !muted;
+  muteBtn.textContent = muted ? '🔇' : '🔊';
+  if(masterGain) masterGain.gain.value = muted ? 0 : 0.55;
+});
+
+/* ====================== UI HELPERS ====================== */
+const counterNumEl = document.getElementById('counterNum');
+const introEl = document.getElementById('intro');
+const comboEl = document.getElementById('combo');
+const popupsEl = document.getElementById('popups');
+let counterValue = 0;
+let introHidden = false;
+let comboCount = 0, lastSplitTime = 0, comboHideTimer = null;
+
+function lerpColor(hexA, hexB, t){
+  const a = parseInt(hexA.slice(1),16), b = parseInt(hexB.slice(1),16);
+  const ar=(a>>16)&255, ag=(a>>8)&255, ab=a&255;
+  const br=(b>>16)&255, bg=(b>>8)&255, bb=b&255;
+  const r=Math.round(ar+(br-ar)*t), g=Math.round(ag+(bg-ag)*t), bl=Math.round(ab+(bb-ab)*t);
+  return 'rgb('+r+','+g+','+bl+')';
+}
+function updateCombo(){
+  const now = performance.now();
+  comboCount = (now - lastSplitTime < 1300) ? comboCount+1 : 1;
+  lastSplitTime = now;
+  if(comboCount >= 2){
+    comboEl.textContent = 'x'+comboCount;
+    comboEl.style.color = lerpColor('#e8a33d','#ff5d3d', Math.min((comboCount-2)/8,1));
+    comboEl.classList.remove('show');
+    requestAnimationFrame(()=>comboEl.classList.add('show'));
+    clearTimeout(comboHideTimer);
+    comboHideTimer = setTimeout(()=>comboEl.classList.remove('show'), 900);
+  }
+}
+function spawnPopup(worldPos){
+  const v = worldPos.clone(); v.project(camera);
+  const x = (v.x*0.5+0.5)*window.innerWidth;
+  const y = (-v.y*0.5+0.5)*window.innerHeight;
+  const el = document.createElement('span');
+  el.className = 'popup'; el.textContent = '+1';
+  el.style.left = x+'px'; el.style.top = y+'px';
+  popupsEl.appendChild(el);
+  setTimeout(()=>el.remove(), 950);
+}
+
+/* ====================== INPUT (tap to split, drag to orbit) ====================== */
+const raycaster = new THREE.Raycaster();
+const mouseNDC = new THREE.Vector2();
+let isDragging = false, dragMoved = false, lastX = 0, lastY = 0, downX = 0, downY = 0;
+const DRAG_SENS = 0.0042;
+
+function onAxeImpact(hitPoint){
+  playImpact();
+  doActualSplit(hitPoint);
+  spawnChips(hitPoint);
+  spawnPopup(hitPoint);
+  triggerShake(0.06, 0.22);
+  counterValue++;
+  counterNumEl.textContent = counterValue;
+  updateCombo();
+}
+
+function tryHit(clientX, clientY){
+  if(!wholeLog) return null;
+  mouseNDC.x = (clientX/window.innerWidth)*2-1;
+  mouseNDC.y = -(clientY/window.innerHeight)*2+1;
+  raycaster.setFromCamera(mouseNDC, camera);
+  const hits = raycaster.intersectObject(wholeLog);
+  return hits.length ? hits[0].point : null;
+}
+
+function startSwing(hitPoint){
+  ensureAudio();
+  playSwing();
+  axeSwing = {start: performance.now(), duration: 190, impactFired:false, hitPoint: hitPoint.clone()};
+  if(!introHidden){ introHidden = true; introEl.classList.add('hide'); }
+}
+
+canvas.addEventListener('pointerdown', (e)=>{
+  isDragging = true; dragMoved = false;
+  lastX = downX = e.clientX; lastY = downY = e.clientY;
+  canvas.style.cursor = 'grabbing';
+});
+canvas.addEventListener('pointermove', (e)=>{
+  if(!isDragging){
+    if(!('ontouchstart' in window)){
+      const hp = tryHit(e.clientX, e.clientY);
+      canvas.style.cursor = hp ? 'pointer' : 'grab';
+    }
+    return;
+  }
+  const dx = e.clientX - lastX;
+  if(Math.abs(e.clientX-downX) + Math.abs(e.clientY-downY) > 5) dragMoved = true;
+  if(dragMoved){
+    camTheta -= dx*DRAG_SENS*2.2;
+    camThetaVel = -dx*DRAG_SENS*0.9;
+  }
+  lastX = e.clientX; lastY = e.clientY;
+});
+window.addEventListener('pointerup', (e)=>{
+  if(!isDragging) return;
+  isDragging = false;
+  canvas.style.cursor = 'grab';
+  if(!dragMoved){
+    const hp = tryHit(e.clientX, e.clientY);
+    if(hp) startSwing(hp);
+  }
+});
+canvas.addEventListener('contextmenu', e=>e.preventDefault());
+
+/* ====================== MAIN LOOP ====================== */
+const EASE3 = t => 1-Math.pow(1-t,3);
+let lastT = performance.now();
+
+function animate(){
+  requestAnimationFrame(animate);
+  const now = performance.now();
+  const dt = Math.min((now-lastT)/1000, 0.05);
+  lastT = now;
+
+  // axe swing
+  if(axeSwing){
+    let t = (now-axeSwing.start)/axeSwing.duration;
+    if(t <= 1){
+      const ang = AXE_REST + (AXE_IMPACT-AXE_REST) * Math.sin(Math.min(t,1)*Math.PI);
+      axe.rotation.x = ang;
+      if(!axeSwing.impactFired && t >= 0.42){
+        axeSwing.impactFired = true;
+        onAxeImpact(axeSwing.hitPoint);
+      }
+    } else {
+      axe.rotation.x = AXE_REST;
+    }
+  }
+
+  // log spawn pop
+  if(wholeLog && wholeLog.scale.x < 1){
+    const t = Math.min((now - wholeLog.userData.spawnStart)/180, 1);
+    const s = Math.max(0.001, EASE3(t));
+    wholeLog.scale.setScalar(s);
+  }
+
+  // halves physics
+  for(let i=activeHalves.length-1;i>=0;i--){
+    const h = activeHalves[i];
+    const vel = h.userData.vel;
+    vel.y -= GRAVITY*dt;
+    h.position.addScaledVector(vel, dt);
+    h.rotation.x += h.userData.angVel.x*dt;
+    h.rotation.y += h.userData.angVel.y*dt;
+    h.rotation.z += h.userData.angVel.z*dt;
+    if(h.position.y < 0.05){
+      h.position.y = 0.05;
+      vel.y *= -0.28; vel.x *= 0.7; vel.z *= 0.7;
+      h.userData.angVel.multiplyScalar(0.6);
+    }
+    h.userData.life += dt;
+    if(h.userData.life > 1.3){
+      const op = Math.max(0, 1-(h.userData.life-1.3)/0.5);
+      h.userData.mats.forEach(m=>{ m.transparent = true; m.opacity = op; });
+    }
+    if(h.userData.life > 1.8){
+      scene.remove(h); disposeObj(h);
+      activeHalves.splice(i,1);
+      addPilePiece(h.position);
+    }
+  }
+
+  // chips physics
+  for(let i=activeChips.length-1;i>=0;i--){
+    const c = activeChips[i];
+    const vel = c.userData.vel;
+    vel.y -= (GRAVITY*1.3)*dt;
+    c.position.addScaledVector(vel, dt);
+    c.rotation.x += c.userData.angVel.x*dt;
+    c.rotation.y += c.userData.angVel.y*dt;
+    c.userData.life += dt;
+    if(c.position.y < 0.02){ c.position.y = 0.02; vel.set(0,0,0); }
+    if(c.userData.life > 0.8){
+      scene.remove(c); c.geometry.dispose();
+      activeChips.splice(i,1);
+    }
+  }
+
+  // embers drift
+  const posAttr = emberGeo.attributes.position;
+  for(let i=0;i<EMBER_N;i++){
+    let y = posAttr.array[i*3+1] + (reducedMotion?0.05:0.18)*dt;
+    let x = posAttr.array[i*3+0] + Math.sin(now*0.0005+emberSeed[i])*0.0015;
+    if(y > 3.4) y = 0;
+    posAttr.array[i*3+1] = y;
+    posAttr.array[i*3+0] = x;
+  }
+  posAttr.needsUpdate = true;
+
+  updateCamera(dt);
+  renderer.render(scene, camera);
+}
+animate();
+
+})();
+</script>
+</body>
+</html>
