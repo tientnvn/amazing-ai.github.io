@@ -33,9 +33,10 @@
     pointer-events:auto;
   }
   #hud{position:fixed;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;}
-  #counter{padding:9px 16px;display:flex;align-items:center;gap:9px;font-weight:500;font-size:13.5px;box-shadow:0 4px 18px rgba(0,0,0,.25);}
-  #counter .num{font-weight:700;font-size:17px;color:var(--gold);min-width:1.1em;text-align:right;}
-  #counter .lbl{opacity:.78;}
+  #hudLeft{display:flex;flex-direction:column;gap:8px;}
+  #counter,#counterFruit{padding:9px 16px;display:flex;align-items:center;gap:9px;font-weight:500;font-size:13.5px;box-shadow:0 4px 18px rgba(0,0,0,.25);}
+  #counter .num,#counterFruit .num{font-weight:700;font-size:17px;color:var(--gold);min-width:1.1em;text-align:right;}
+  #counter .lbl,#counterFruit .lbl{opacity:.78;}
   #ambientBtn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(255,255,255,.08);background:var(--maroon-panel);color:var(--ivory);cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.25);}
   #ambientBtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 
@@ -53,6 +54,15 @@
     text-align:center;
   }
   #mantra.show{opacity:1;transform:translate(-50%,0);}
+
+  #blessing{
+    position:fixed;top:39%;left:50%;transform:translate(-50%,8px);
+    font-weight:600;font-size:clamp(16px,3.4vw,23px);color:var(--gold);
+    text-shadow:0 3px 20px rgba(0,0,0,.45);opacity:0;
+    transition:opacity .9s ease,transform .9s ease;pointer-events:none;letter-spacing:.03em;
+    text-align:center;max-width:82vw;
+  }
+  #blessing.show{opacity:1;transform:translate(-50%,0);}
 
   #controls{
     position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
@@ -110,6 +120,28 @@
   }
   #wishPanel .close{background:none;border:none;color:rgba(246,236,217,.6);font-size:16px;cursor:pointer;padding:2px 6px;}
 
+  #fruitPanel{
+    position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(8px);
+    width:min(92vw,360px);background:rgba(40,18,16,.72);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 16px;
+    display:none;flex-direction:column;gap:10px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  #fruitPanel.open{display:flex;position:fixed;}
+  #fruitPanel .title{font-size:12.5px;color:rgba(246,236,217,.7);text-align:center;}
+  .fruitGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .fruitBtn{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;padding:10px 6px;cursor:pointer;color:var(--ivory);
+    font-family:inherit;font-size:21px;
+  }
+  .fruitBtn span{font-size:11px;opacity:.85;font-weight:500;}
+  .fruitBtn:hover{background:rgba(255,255,255,.12);}
+  .fruitBtn:active{transform:scale(.95);}
+  #fruitPanel .row{display:flex;justify-content:center;align-items:center;}
+  #fruitPanel .close{background:none;border:none;color:rgba(246,236,217,.6);font-size:16px;cursor:pointer;padding:2px 6px;position:absolute;top:8px;right:10px;}
+
   #lanterns{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
   .lantern{
     position:absolute;bottom:120px;
@@ -138,8 +170,13 @@
 <canvas id="scene"></canvas>
 
 <div id="hud">
-  <div id="counter" class="panel">
-    <span>🕯️</span><span class="lbl">Hương đã thắp</span><span class="num" id="counterNum">0</span>
+  <div id="hudLeft">
+    <div id="counter" class="panel">
+      <span>🕯️</span><span class="lbl">Hương đã thắp</span><span class="num" id="counterNum">0</span>
+    </div>
+    <div id="counterFruit" class="panel">
+      <span>🍊</span><span class="lbl">Lễ vật đã dâng</span><span class="num" id="counterFruitNum">0</span>
+    </div>
   </div>
   <button id="ambientBtn" class="panel" aria-label="Tắt / mở âm thanh">🔊</button>
 </div>
@@ -151,6 +188,7 @@
 </div>
 
 <div id="mantra">Nam mô A Di Đà Phật</div>
+<div id="blessing"></div>
 
 <div id="breathOverlay">
   <div id="breathCircle"></div>
@@ -166,9 +204,24 @@
   </div>
 </div>
 
+<div id="fruitPanel">
+  <button class="close" id="fruitClose" aria-label="Đóng">✕</button>
+  <div class="title">Chọn một lễ vật để dâng lên ban thờ</div>
+  <div class="fruitGrid">
+    <button class="fruitBtn" data-fruit="chuoi">🍌<span>Chuối</span></button>
+    <button class="fruitBtn" data-fruit="cam">🍊<span>Cam</span></button>
+    <button class="fruitBtn" data-fruit="tao">🍎<span>Táo</span></button>
+    <button class="fruitBtn" data-fruit="xoai">🥭<span>Xoài</span></button>
+    <button class="fruitBtn" data-fruit="na">🍈<span>Na</span></button>
+    <button class="fruitBtn" data-fruit="nho">🍇<span>Nho</span></button>
+  </div>
+</div>
+
 <div id="controls">
   <button class="btn" id="btnChapTay">🙏 Chắp tay khấn Phật</button>
   <button class="btn" id="btnBreath">🪷 Hơi thở tịnh tâm</button>
+  <button class="btn" id="btnFruit">🍊 Cúng trái cây</button>
+  <button class="btn" id="btnTraLe">🙏 Trả lễ (xin lộc)</button>
   <button class="btn" id="btnWish">✉️ Khấn nguyện</button>
 </div>
 
@@ -400,17 +453,14 @@ const candleMat = new THREE.MeshStandardMaterial({color:0x9c1c24, roughness:0.5}
   altarGroup.add(pl);
 });
 
-/* offering tray + fruit (decorative) */
+/* offering tray (lễ vật được dâng động qua spawnOffering, xem phần OFFERINGS bên dưới) */
 const tray = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.22,0.025,20), new THREE.MeshStandardMaterial({color:0xd8c39a, roughness:0.6}));
 tray.position.set(-0.78, tableTopY+0.02, -0.05);
 altarGroup.add(tray);
-const fruitColors=[0xe0742f,0xd9b23c,0xb13a2c];
-fruitColors.forEach((c,i)=>{
-  const f=new THREE.Mesh(new THREE.SphereGeometry(0.055,12,10), new THREE.MeshStandardMaterial({color:c, roughness:0.5}));
-  f.position.set(-0.78+(i-1)*0.07, tableTopY+0.07, -0.05+(i%2)*0.05);
-  f.castShadow=true;
-  altarGroup.add(f);
-});
+
+const trayHitbox = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.4,0.42), new THREE.MeshBasicMaterial({visible:false}));
+trayHitbox.position.set(tray.position.x, tray.position.y+0.1, tray.position.z);
+altarGroup.add(trayHitbox);
 
 /* singing bowl (clickable) */
 const bowlGroup = new THREE.Group();
@@ -530,6 +580,126 @@ function spawnIncenseParticles(originLocal){
   }, 150);
 }
 
+/* ====================== OFFERINGS: cúng trái cây & trả lễ ====================== */
+const FRUITS = {
+  chuoi: { label:'Chuối', color:0xe8d44a, scale:[1.7,0.55,0.55] },
+  cam:   { label:'Cam',   color:0xe8842a, scale:[1,1,1] },
+  tao:   { label:'Táo',   color:0xb13a2c, scale:[1,0.92,1] },
+  xoai:  { label:'Xoài',  color:0xd9c23c, scale:[1.25,0.85,0.85] },
+  na:    { label:'Na',    color:0x7a9b4e, scale:[1,1,1], lowPoly:true },
+  nho:   { label:'Nho',   color:0x5a3a6b, cluster:true }
+};
+const MAX_OFFERINGS = 6;
+const offeringFruits = [];
+
+function offeringSlotLocal(index){
+  const a = (index/MAX_OFFERINGS) * Math.PI*2;
+  return new THREE.Vector3(Math.cos(a)*0.085, 0.045, Math.sin(a)*0.085);
+}
+
+function buildFruitMesh(def){
+  const wrapper = new THREE.Group();
+  const materials = [];
+  if(def.cluster){
+    for(let i=0;i<5;i++){
+      const mat = new THREE.MeshStandardMaterial({color:def.color, roughness:0.45, transparent:true, opacity:1});
+      const s = new THREE.Mesh(new THREE.SphereGeometry(0.018,10,8), mat);
+      const a = (i/5)*Math.PI*2;
+      s.position.set(Math.cos(a)*0.022, -i*0.013, Math.sin(a)*0.022);
+      s.castShadow = true;
+      wrapper.add(s);
+      materials.push(mat);
+    }
+  } else {
+    const mat = new THREE.MeshStandardMaterial({color:def.color, roughness:0.45, transparent:true, opacity:1});
+    const seg = def.lowPoly ? 7 : 14;
+    const inner = new THREE.Mesh(new THREE.SphereGeometry(0.042,seg,Math.max(5,seg-2)), mat);
+    inner.scale.set(def.scale[0], def.scale[1], def.scale[2]);
+    inner.castShadow = true;
+    wrapper.add(inner);
+    materials.push(mat);
+  }
+  return {wrapper, materials};
+}
+
+function spawnOffering(typeKey){
+  const def = FRUITS[typeKey];
+  if(!def) return;
+  ensureAudio(); hideIntro();
+  if(offeringFruits.length >= MAX_OFFERINGS){
+    showBlessing('Ban thờ đã đầy lễ vật, hãy trả lễ trước khi dâng thêm 🙏', 2400);
+    return;
+  }
+  const {wrapper, materials} = buildFruitMesh(def);
+  const slotIndex = offeringFruits.length;
+  const slotLocal = offeringSlotLocal(slotIndex);
+  const fromWorld = altarGroup.localToWorld(new THREE.Vector3(tray.position.x, tray.position.y+1.25, tray.position.z));
+  const toWorld = altarGroup.localToWorld(new THREE.Vector3(tray.position.x+slotLocal.x, tray.position.y+slotLocal.y, tray.position.z+slotLocal.z));
+  wrapper.position.copy(fromWorld);
+  scene.add(wrapper);
+  offeringFruits.push({
+    wrapper, materials, type:typeKey,
+    anim:{start:performance.now(), duration:600, from:fromWorld.clone(), to:toWorld.clone()},
+    fadeOut:null
+  });
+  playChime();
+  fruitCounterValue++; counterFruitNumEl.textContent = fruitCounterValue;
+}
+
+const BLESSING_PHRASES = [
+  'Phúc Lộc An Khang','Vạn Sự Như Ý','Tâm An Vạn Sự An',
+  'Bình An Tự Tại','Sở Cầu Như Nguyện','Thân Tâm An Lạc'
+];
+const blessingEl = document.getElementById('blessing');
+let blessingTimer = null;
+function showBlessing(text, ms){
+  blessingEl.textContent = text;
+  blessingEl.classList.add('show');
+  clearTimeout(blessingTimer);
+  blessingTimer = setTimeout(()=>blessingEl.classList.remove('show'), ms || 2600);
+}
+
+const blessingParticles = [];
+function spawnBlessingBeam(){
+  const origin = altarGroup.localToWorld(new THREE.Vector3(tray.position.x, tray.position.y+0.08, tray.position.z));
+  const dest = new THREE.Vector3(); statueLight.getWorldPosition(dest);
+  const n = 16;
+  for(let i=0;i<n;i++){
+    const mat = new THREE.SpriteMaterial({map:goldGlowTex, color:0xffe4a3, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:0});
+    const spr = new THREE.Sprite(mat);
+    spr.scale.set(0.1,0.1,1);
+    spr.position.copy(origin);
+    scene.add(spr);
+    const jitter = new THREE.Vector3((Math.random()-0.5)*0.18,(Math.random()-0.5)*0.12,(Math.random()-0.5)*0.18);
+    blessingParticles.push({
+      spr, mat, life:0, delay:i*0.045, duration:0.9+Math.random()*0.3,
+      from:origin.clone(), to:dest.clone().add(jitter)
+    });
+  }
+}
+
+function doTraLe(){
+  ensureAudio(); hideIntro();
+  if(offeringFruits.length === 0){
+    showBlessing('Hãy dâng một lễ vật trước khi xin lộc 🍊', 2200);
+    return;
+  }
+  playBowl();
+  glowPulse = {start:performance.now(), duration:1900};
+  spawnBlessingBeam();
+  const phrase = BLESSING_PHRASES[Math.floor(Math.random()*BLESSING_PHRASES.length)];
+  setTimeout(()=>showBlessing(phrase, 3000), 550);
+  offeringFruits.forEach(o=>{ o.fadeOut = {start:performance.now()+450, duration:800}; });
+  setTimeout(()=>{
+    offeringFruits.forEach(o=>{
+      scene.remove(o.wrapper);
+      o.wrapper.traverse(n=>{ if(n.geometry) n.geometry.dispose(); });
+      o.materials.forEach(m=>m.dispose());
+    });
+    offeringFruits.length = 0;
+  }, 1300);
+}
+
 /* ====================== AUDIO ====================== */
 let audioCtx=null, masterGain=null, ambientOn=false, ambientNodes=null, muted=false;
 function ensureAudio(){
@@ -620,9 +790,10 @@ ambientBtn.addEventListener('click', ()=>{
 
 /* ====================== UI: counter / intro / mantra ====================== */
 const counterNumEl = document.getElementById('counterNum');
+const counterFruitNumEl = document.getElementById('counterFruitNum');
 const introEl = document.getElementById('intro');
 const mantraEl = document.getElementById('mantra');
-let counterValue = 0, introHidden = false, mantraTimer = null;
+let counterValue = 0, fruitCounterValue = 0, introHidden = false, mantraTimer = null;
 
 function hideIntro(){ if(!introHidden){ introHidden=true; introEl.classList.add('hide'); } }
 function showMantra(){
@@ -686,14 +857,16 @@ function tickBreath(now){
 const wishPanel = document.getElementById('wishPanel');
 const btnWish = document.getElementById('btnWish');
 const wishText = document.getElementById('wishText');
+function closeFruitPanel(){ fruitPanel.classList.remove('open'); btnFruit.classList.remove('active'); }
+function closeWishPanel(){ wishPanel.classList.remove('open'); btnWish.classList.remove('active'); }
 btnWish.addEventListener('click', ()=>{
-  wishPanel.classList.toggle('open');
-  btnWish.classList.toggle('active', wishPanel.classList.contains('open'));
-  if(wishPanel.classList.contains('open')) hideIntro();
+  const willOpen = !wishPanel.classList.contains('open');
+  closeFruitPanel();
+  wishPanel.classList.toggle('open', willOpen);
+  btnWish.classList.toggle('active', willOpen);
+  if(willOpen) hideIntro();
 });
-document.getElementById('wishClose').addEventListener('click', ()=>{
-  wishPanel.classList.remove('open'); btnWish.classList.remove('active');
-});
+document.getElementById('wishClose').addEventListener('click', closeWishPanel);
 document.getElementById('wishSend').addEventListener('click', ()=>{
   const txt = wishText.value.trim();
   if(!txt) return;
@@ -705,15 +878,34 @@ document.getElementById('wishSend').addEventListener('click', ()=>{
   document.getElementById('lanterns').appendChild(lantern);
   setTimeout(()=>lantern.remove(), 6200);
   wishText.value='';
-  wishPanel.classList.remove('open'); btnWish.classList.remove('active');
+  closeWishPanel();
 });
+
+/* fruit panel + trả lễ */
+const fruitPanel = document.getElementById('fruitPanel');
+const btnFruit = document.getElementById('btnFruit');
+btnFruit.addEventListener('click', ()=>{
+  const willOpen = !fruitPanel.classList.contains('open');
+  closeWishPanel();
+  fruitPanel.classList.toggle('open', willOpen);
+  btnFruit.classList.toggle('active', willOpen);
+  if(willOpen) hideIntro();
+});
+document.getElementById('fruitClose').addEventListener('click', closeFruitPanel);
+document.querySelectorAll('.fruitBtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    spawnOffering(btn.dataset.fruit);
+    closeFruitPanel();
+  });
+});
+document.getElementById('btnTraLe').addEventListener('click', doTraLe);
 
 /* ====================== INPUT: tap to interact, drag to orbit ====================== */
 const raycaster = new THREE.Raycaster();
 const mouseNDC = new THREE.Vector2();
 let isDragging=false, dragMoved=false, lastX=0,lastY=0,downX=0,downY=0;
 const DRAG_SENS = 0.0042;
-const hitTargets = [incenseHitbox, bowlHitbox];
+const hitTargets = [incenseHitbox, bowlHitbox, trayHitbox];
 
 function tryHit(clientX,clientY){
   mouseNDC.x = (clientX/window.innerWidth)*2-1;
@@ -721,7 +913,9 @@ function tryHit(clientX,clientY){
   raycaster.setFromCamera(mouseNDC, camera);
   const hits = raycaster.intersectObjects(hitTargets);
   if(!hits.length) return null;
-  return hits[0].object === incenseHitbox ? 'incense' : 'bowl';
+  if(hits[0].object === incenseHitbox) return 'incense';
+  if(hits[0].object === bowlHitbox) return 'bowl';
+  return 'tray';
 }
 
 canvas.addEventListener('pointerdown',(e)=>{
@@ -749,11 +943,17 @@ window.addEventListener('pointerup',(e)=>{
     const h = tryHit(e.clientX,e.clientY);
     if(h==='incense') doLightIncense();
     else if(h==='bowl') doRingBowl();
+    else if(h==='tray'){
+      closeWishPanel();
+      fruitPanel.classList.add('open'); btnFruit.classList.add('active');
+      hideIntro();
+    }
   }
 });
 canvas.addEventListener('contextmenu', e=>e.preventDefault());
 
 /* ====================== MAIN LOOP ====================== */
+const EASE3 = t => 1-Math.pow(1-t,3);
 let lastT = performance.now();
 function animate(){
   requestAnimationFrame(animate);
@@ -798,6 +998,47 @@ function animate(){
     r.mesh.scale.set(s,s,s);
     r.mesh.material.opacity = Math.max(0, 0.55 - r.life*0.5);
     if(r.life > 1.1){ scene.remove(r.mesh); r.mesh.geometry.dispose(); r.mesh.material.dispose(); activeRipples.splice(i,1); }
+  }
+
+  // offering fruits: bay xuống khay + tan biến khi trả lễ
+  for(let i=offeringFruits.length-1;i>=0;i--){
+    const o = offeringFruits[i];
+    if(o.anim){
+      const t = (now-o.anim.start)/o.anim.duration;
+      const tc = Math.min(Math.max(t,0),1);
+      const k = EASE3(tc);
+      const arc = Math.sin(tc*Math.PI) * 0.16;
+      o.wrapper.position.lerpVectors(o.anim.from, o.anim.to, k);
+      o.wrapper.position.y += arc;
+      o.wrapper.rotation.y += dt*3.5;
+      if(t >= 1){ o.wrapper.position.copy(o.anim.to); o.anim = null; }
+    }
+    if(o.fadeOut){
+      const t = (now-o.fadeOut.start)/o.fadeOut.duration;
+      if(t >= 0){
+        const k = Math.min(t,1);
+        o.wrapper.position.y += dt*0.45;
+        o.wrapper.scale.setScalar(Math.max(0.001,1-k));
+        o.materials.forEach(m=>{ m.opacity = 1-k; });
+      }
+    }
+  }
+
+  // blessing particles: ánh sáng từ khay lễ bay lên tượng khi trả lễ
+  for(let i=blessingParticles.length-1;i>=0;i--){
+    const bp = blessingParticles[i];
+    bp.life += dt;
+    if(bp.life < bp.delay) continue;
+    const t = (bp.life-bp.delay)/bp.duration;
+    if(t<=1){
+      bp.spr.position.lerpVectors(bp.from, bp.to, EASE3(t));
+      bp.mat.opacity = Math.sin(Math.min(t,1)*Math.PI) * 0.9;
+      const grow = 0.1 + t*0.05;
+      bp.spr.scale.set(grow,grow,1);
+    } else {
+      scene.remove(bp.spr); bp.mat.dispose();
+      blessingParticles.splice(i,1);
+    }
   }
 
   // incense particles: smoke -> light
