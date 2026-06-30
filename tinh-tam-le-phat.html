@@ -34,9 +34,9 @@
   }
   #hud{position:fixed;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;}
   #hudLeft{display:flex;flex-direction:column;gap:8px;}
-  #counter,#counterFruit{padding:9px 16px;display:flex;align-items:center;gap:9px;font-weight:500;font-size:13.5px;box-shadow:0 4px 18px rgba(0,0,0,.25);}
-  #counter .num,#counterFruit .num{font-weight:700;font-size:17px;color:var(--gold);min-width:1.1em;text-align:right;}
-  #counter .lbl,#counterFruit .lbl{opacity:.78;}
+  #counter,#counterFruit,#counterVotive{padding:9px 16px;display:flex;align-items:center;gap:9px;font-weight:500;font-size:13.5px;box-shadow:0 4px 18px rgba(0,0,0,.25);}
+  #counter .num,#counterFruit .num,#counterVotive .num{font-weight:700;font-size:17px;color:var(--gold);min-width:1.1em;text-align:right;}
+  #counter .lbl,#counterFruit .lbl,#counterVotive .lbl{opacity:.78;}
   #ambientBtn{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;border:1px solid rgba(255,255,255,.08);background:var(--maroon-panel);color:var(--ivory);cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.25);}
   #ambientBtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 
@@ -142,6 +142,27 @@
   #fruitPanel .row{display:flex;justify-content:center;align-items:center;}
   #fruitPanel .close{background:none;border:none;color:rgba(246,236,217,.6);font-size:16px;cursor:pointer;padding:2px 6px;position:absolute;top:8px;right:10px;}
 
+  #votivePanel{
+    position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(8px);
+    width:min(92vw,360px);background:rgba(40,18,16,.72);backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px 16px;
+    display:none;flex-direction:column;gap:10px;
+    box-shadow:0 8px 30px rgba(0,0,0,.35);
+  }
+  #votivePanel.open{display:flex;}
+  #votivePanel .title{font-size:12.5px;color:rgba(246,236,217,.7);text-align:center;}
+  .votiveGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .votiveBtn{
+    display:flex;flex-direction:column;align-items:center;gap:4px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);
+    border-radius:12px;padding:10px 6px;cursor:pointer;color:var(--ivory);
+    font-family:inherit;font-size:21px;
+  }
+  .votiveBtn span{font-size:11px;opacity:.85;font-weight:500;}
+  .votiveBtn:hover{background:rgba(255,255,255,.12);}
+  .votiveBtn:active{transform:scale(.95);}
+  #votivePanel .close{background:none;border:none;color:rgba(246,236,217,.6);font-size:16px;cursor:pointer;padding:2px 6px;position:absolute;top:8px;right:10px;}
+
   #lanterns{position:fixed;inset:0;pointer-events:none;overflow:hidden;}
   .lantern{
     position:absolute;bottom:120px;
@@ -177,6 +198,9 @@
     <div id="counterFruit" class="panel">
       <span>🍊</span><span class="lbl">Lễ vật đã dâng</span><span class="num" id="counterFruitNum">0</span>
     </div>
+    <div id="counterVotive" class="panel">
+      <span>🔥</span><span class="lbl">Vàng mã đã hóa</span><span class="num" id="counterVotiveNum">0</span>
+    </div>
   </div>
   <button id="ambientBtn" class="panel" aria-label="Tắt / mở âm thanh">🔊</button>
 </div>
@@ -208,12 +232,22 @@
   <button class="close" id="fruitClose" aria-label="Đóng">✕</button>
   <div class="title">Chọn một lễ vật để dâng lên ban thờ</div>
   <div class="fruitGrid">
-    <button class="fruitBtn" data-fruit="chuoi">🍌<span>Chuối</span></button>
+    <button class="fruitBtn" data-fruit="buoi">🟢<span>Bưởi</span></button>
     <button class="fruitBtn" data-fruit="cam">🍊<span>Cam</span></button>
+    <button class="fruitBtn" data-fruit="le">🍐<span>Lê</span></button>
     <button class="fruitBtn" data-fruit="tao">🍎<span>Táo</span></button>
-    <button class="fruitBtn" data-fruit="xoai">🥭<span>Xoài</span></button>
-    <button class="fruitBtn" data-fruit="na">🍈<span>Na</span></button>
-    <button class="fruitBtn" data-fruit="nho">🍇<span>Nho</span></button>
+    <button class="fruitBtn" data-fruit="mangcau">🍏<span>Mãng cầu</span></button>
+    <button class="fruitBtn" data-fruit="dualuoi">🍈<span>Dưa lưới</span></button>
+  </div>
+</div>
+
+<div id="votivePanel">
+  <button class="close" id="votiveClose" aria-label="Đóng">✕</button>
+  <div class="title">Chọn lễ vật để hóa (đốt vàng mã)</div>
+  <div class="votiveGrid">
+    <button class="votiveBtn" data-votive="tien">🧧<span>Tiền vàng</span></button>
+    <button class="votiveBtn" data-votive="dienthoai">📱<span>Điện thoại</span></button>
+    <button class="votiveBtn" data-votive="xehoi">🚗<span>Xe hơi</span></button>
   </div>
 </div>
 
@@ -222,6 +256,7 @@
   <button class="btn" id="btnBreath">🪷 Hơi thở tịnh tâm</button>
   <button class="btn" id="btnFruit">🍊 Cúng trái cây</button>
   <button class="btn" id="btnTraLe">🙏 Trả lễ (xin lộc)</button>
+  <button class="btn" id="btnVotive">🔥 Đốt vàng mã</button>
   <button class="btn" id="btnWish">✉️ Khấn nguyện</button>
 </div>
 
@@ -558,6 +593,39 @@ statueGroup.add(statueLight);
 /* idle gentle breathing pulse for statue */
 let idleClock = 0;
 
+/* ====================== BRAZIER (lư hóa vàng — đốt vàng mã) ====================== */
+const brazierGroup = new THREE.Group();
+brazierGroup.position.set(1.05, 0, 1.1);
+scene.add(brazierGroup);
+
+const brazierBaseMat = new THREE.MeshStandardMaterial({color:0x2e2620, roughness:0.65, metalness:0.4});
+const brazierBowlMat = new THREE.MeshStandardMaterial({color:0x4a3a26, roughness:0.55, metalness:0.45});
+
+const brazierFoot = new THREE.Mesh(new THREE.CylinderGeometry(0.1,0.14,0.18,14), brazierBaseMat);
+brazierFoot.position.y = 0.09; brazierFoot.castShadow = true; brazierFoot.receiveShadow = true;
+brazierGroup.add(brazierFoot);
+
+const brazierBowl = new THREE.Mesh(new THREE.CylinderGeometry(0.26,0.18,0.22,16,1,true), brazierBowlMat);
+brazierBowl.position.y = 0.29; brazierBowl.castShadow = true;
+brazierGroup.add(brazierBowl);
+
+const brazierRim = new THREE.Mesh(new THREE.TorusGeometry(0.26,0.018,8,20), brazierBaseMat);
+brazierRim.position.y = 0.4; brazierRim.rotation.x = Math.PI/2;
+brazierGroup.add(brazierRim);
+
+const brazierFlame = new THREE.Sprite(new THREE.SpriteMaterial({map:goldGlowTex, color:0xff8a3a, transparent:true, depthWrite:false, blending:THREE.AdditiveBlending, opacity:0.85}));
+brazierFlame.scale.set(0.3,0.36,1);
+brazierFlame.position.set(0,0.34,0);
+brazierGroup.add(brazierFlame);
+
+const brazierLight = new THREE.PointLight(0xff8a3a, 0.9, 3.2);
+brazierLight.position.set(0,0.4,0);
+brazierGroup.add(brazierLight);
+
+const brazierHitbox = new THREE.Mesh(new THREE.BoxGeometry(0.6,0.7,0.6), new THREE.MeshBasicMaterial({visible:false}));
+brazierHitbox.position.set(0,0.35,0);
+brazierGroup.add(brazierHitbox);
+
 /* ====================== INCENSE PARTICLES (smoke -> light) ====================== */
 const incenseParticles = [];
 function spawnIncenseParticles(originLocal){
@@ -582,12 +650,12 @@ function spawnIncenseParticles(originLocal){
 
 /* ====================== OFFERINGS: cúng trái cây & trả lễ ====================== */
 const FRUITS = {
-  chuoi: { label:'Chuối', color:0xe8d44a, scale:[1.7,0.55,0.55] },
-  cam:   { label:'Cam',   color:0xe8842a, scale:[1,1,1] },
-  tao:   { label:'Táo',   color:0xb13a2c, scale:[1,0.92,1] },
-  xoai:  { label:'Xoài',  color:0xd9c23c, scale:[1.25,0.85,0.85] },
-  na:    { label:'Na',    color:0x7a9b4e, scale:[1,1,1], lowPoly:true },
-  nho:   { label:'Nho',   color:0x5a3a6b, cluster:true }
+  buoi:    { label:'Bưởi',      color:0xc7d168, scale:[1.5,1.4,1.5] },
+  cam:     { label:'Cam',       color:0xe8842a, scale:[1,1,1] },
+  le:      { label:'Lê',        color:0xd9d68a, scale:[0.95,1.25,0.95] },
+  tao:     { label:'Táo',       color:0xb13a2c, scale:[1,0.92,1] },
+  mangcau: { label:'Mãng cầu',  color:0x8aa35a, scale:[1.05,1.1,1.05], lowPoly:true },
+  dualuoi: { label:'Dưa lưới',  color:0xd9c9a0, scale:[1.3,1.15,1.3], lowPoly:true }
 };
 const MAX_OFFERINGS = 6;
 const offeringFruits = [];
@@ -600,25 +668,13 @@ function offeringSlotLocal(index){
 function buildFruitMesh(def){
   const wrapper = new THREE.Group();
   const materials = [];
-  if(def.cluster){
-    for(let i=0;i<5;i++){
-      const mat = new THREE.MeshStandardMaterial({color:def.color, roughness:0.45, transparent:true, opacity:1});
-      const s = new THREE.Mesh(new THREE.SphereGeometry(0.018,10,8), mat);
-      const a = (i/5)*Math.PI*2;
-      s.position.set(Math.cos(a)*0.022, -i*0.013, Math.sin(a)*0.022);
-      s.castShadow = true;
-      wrapper.add(s);
-      materials.push(mat);
-    }
-  } else {
-    const mat = new THREE.MeshStandardMaterial({color:def.color, roughness:0.45, transparent:true, opacity:1});
-    const seg = def.lowPoly ? 7 : 14;
-    const inner = new THREE.Mesh(new THREE.SphereGeometry(0.042,seg,Math.max(5,seg-2)), mat);
-    inner.scale.set(def.scale[0], def.scale[1], def.scale[2]);
-    inner.castShadow = true;
-    wrapper.add(inner);
-    materials.push(mat);
-  }
+  const mat = new THREE.MeshStandardMaterial({color:def.color, roughness:0.45, transparent:true, opacity:1});
+  const seg = def.lowPoly ? 8 : 14;
+  const inner = new THREE.Mesh(new THREE.SphereGeometry(0.042,seg,Math.max(6,seg-2)), mat);
+  inner.scale.set(def.scale[0], def.scale[1], def.scale[2]);
+  inner.castShadow = true;
+  wrapper.add(inner);
+  materials.push(mat);
   return {wrapper, materials};
 }
 
@@ -700,84 +756,290 @@ function doTraLe(){
   }, 1300);
 }
 
+/* ====================== VOTIVE OFFERINGS: đốt vàng mã ====================== */
+function buildTienMesh(){
+  const wrapper = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({color:0xd4af37, roughness:0.4, metalness:0.5, emissive:0x000000, emissiveIntensity:0, transparent:true, opacity:1});
+  for(let i=0;i<4;i++){
+    const sheet = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.006,0.07), mat);
+    sheet.position.y = i*0.007;
+    sheet.rotation.y = (Math.random()-0.5)*0.3;
+    sheet.castShadow = true;
+    wrapper.add(sheet);
+  }
+  return {wrapper, materials:[mat]};
+}
+function buildDienThoaiMesh(){
+  const wrapper = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({color:0x202225, roughness:0.4, metalness:0.3, emissive:0x000000, emissiveIntensity:0, transparent:true, opacity:1});
+  const screenMat = new THREE.MeshStandardMaterial({color:0x6fa8d9, roughness:0.3, emissive:0x1c3a55, emissiveIntensity:0.4, transparent:true, opacity:1});
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.034,0.006,0.07), bodyMat);
+  body.castShadow = true;
+  const screen = new THREE.Mesh(new THREE.BoxGeometry(0.026,0.002,0.058), screenMat);
+  screen.position.y = 0.004;
+  wrapper.add(body, screen);
+  return {wrapper, materials:[bodyMat, screenMat]};
+}
+function buildXeHoiMesh(){
+  const wrapper = new THREE.Group();
+  const bodyMat = new THREE.MeshStandardMaterial({color:0xb1342c, roughness:0.4, metalness:0.3, emissive:0x000000, emissiveIntensity:0, transparent:true, opacity:1});
+  const wheelMat = new THREE.MeshStandardMaterial({color:0x1a1a1a, roughness:0.6, emissive:0x000000, emissiveIntensity:0, transparent:true, opacity:1});
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.09,0.03,0.045), bodyMat);
+  body.position.y = 0.02; body.castShadow = true;
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.022,0.04), bodyMat);
+  cabin.position.set(-0.005,0.04,0); cabin.castShadow = true;
+  wrapper.add(body, cabin);
+  [[-0.03,0.008,0.024],[0.03,0.008,0.024],[-0.03,0.008,-0.024],[0.03,0.008,-0.024]].forEach(p=>{
+    const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.012,10), wheelMat);
+    wheel.rotation.z = Math.PI/2;
+    wheel.position.set(p[0],p[1],p[2]);
+    wrapper.add(wheel);
+  });
+  return {wrapper, materials:[bodyMat, wheelMat]};
+}
+
+const VOTIVES = {
+  tien:      { label:'Tiền vàng',  build: buildTienMesh },
+  dienthoai: { label:'Điện thoại', build: buildDienThoaiMesh },
+  xehoi:     { label:'Xe hơi',     build: buildXeHoiMesh }
+};
+const MAX_VOTIVE_BURNING = 3;
+const BURN_DURATION = 1700;
+const votiveItems = [];
+
+function spawnVotive(typeKey){
+  const def = VOTIVES[typeKey];
+  if(!def) return;
+  ensureAudio(); hideIntro();
+  if(votiveItems.length >= MAX_VOTIVE_BURNING){
+    showBlessing('Lò hóa vàng đang cháy, đợi một chút rồi hóa tiếp nhé 🔥', 2200);
+    return;
+  }
+  const {wrapper, materials} = def.build();
+  const fromWorld = brazierGroup.localToWorld(new THREE.Vector3((Math.random()-0.5)*0.1, 0.85, (Math.random()-0.5)*0.1));
+  const toWorld = brazierGroup.localToWorld(new THREE.Vector3((Math.random()-0.5)*0.06, 0.34, (Math.random()-0.5)*0.06));
+  wrapper.position.copy(fromWorld);
+  wrapper.rotation.y = Math.random()*Math.PI*2;
+  scene.add(wrapper);
+  votiveItems.push({
+    wrapper, materials, type:typeKey,
+    drop:{start:performance.now(), duration:480, from:fromWorld.clone(), to:toWorld.clone()},
+    burnStart:null, lastAsh:0
+  });
+  playBurnDrop();
+  votiveCounterValue++; counterVotiveNumEl.textContent = votiveCounterValue;
+}
+
+const ashParticles = [];
+function spawnAshBurst(originWorld){
+  const n = 7 + Math.floor(Math.random()*5);
+  for(let i=0;i<n;i++){
+    const isEmber = Math.random() < 0.55;
+    const mat = new THREE.SpriteMaterial({
+      map: isEmber ? goldGlowTex : softTex,
+      color: isEmber ? 0xff7a2e : 0x6a6258,
+      transparent:true, depthWrite:false,
+      blending: isEmber ? THREE.AdditiveBlending : THREE.NormalBlending,
+      opacity:0
+    });
+    const spr = new THREE.Sprite(mat);
+    const sc = isEmber ? 0.035+Math.random()*0.025 : 0.05+Math.random()*0.06;
+    spr.scale.set(sc,sc,1);
+    spr.position.copy(originWorld);
+    scene.add(spr);
+    ashParticles.push({
+      spr, mat, life:0, maxLife: isEmber ? 0.7+Math.random()*0.5 : 1.4+Math.random()*0.8,
+      vel: new THREE.Vector3((Math.random()-0.5)*0.45, 0.55+Math.random()*0.6, (Math.random()-0.5)*0.45),
+      isEmber
+    });
+  }
+}
+
 /* ====================== AUDIO ====================== */
 let audioCtx=null, masterGain=null, ambientOn=false, ambientNodes=null, muted=false;
+let reverbConvolver=null, reverbSendGain=null, noiseBuffer=null;
+
+function createImpulseResponse(ctx, duration, decay){
+  const rate = ctx.sampleRate;
+  const length = Math.floor(rate*duration);
+  const impulse = ctx.createBuffer(2, length, rate);
+  for(let c=0;c<2;c++){
+    const data = impulse.getChannelData(c);
+    for(let i=0;i<length;i++){
+      data[i] = (Math.random()*2-1) * Math.pow(1-i/length, decay);
+    }
+  }
+  return impulse;
+}
+function createWhiteNoiseBuffer(ctx, seconds){
+  const length = Math.floor(ctx.sampleRate*seconds);
+  const buf = ctx.createBuffer(1, length, ctx.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i=0;i<length;i++) d[i] = Math.random()*2-1;
+  return buf;
+}
+
 function ensureAudio(){
   if(!audioCtx){
     audioCtx = new (window.AudioContext||window.webkitAudioContext)();
     masterGain = audioCtx.createGain();
     masterGain.gain.value = muted?0:0.6;
     masterGain.connect(audioCtx.destination);
+
+    // Reverb send dùng chung cho chuông/khánh — tạo không gian vang trang nghiêm
+    reverbConvolver = audioCtx.createConvolver();
+    reverbConvolver.buffer = createImpulseResponse(audioCtx, 2.6, 2.3);
+    reverbSendGain = audioCtx.createGain();
+    reverbSendGain.gain.value = 0.55;
+    reverbConvolver.connect(reverbSendGain);
+    reverbSendGain.connect(masterGain);
+
+    noiseBuffer = createWhiteNoiseBuffer(audioCtx, 1.5);
   }
   if(audioCtx.state==='suspended') audioCtx.resume();
 }
+
+// nối 1 oscillator/gain vừa tới masterGain (dry) vừa tới reverb (wet) để có độ vang trang trọng
+function connectWithReverb(node, wetAmount){
+  node.connect(masterGain);
+  const send = audioCtx.createGain();
+  send.gain.value = wetAmount;
+  node.connect(send);
+  send.connect(reverbConvolver);
+}
+
 function playBowl(){
   if(!audioCtx) return;
   const t = audioCtx.currentTime;
-  [220, 330, 442].forEach((f,i)=>{
+  // hạ thấp bộ ba tần số (F3/A3/D4) để tiếng chuông trầm, trang nghiêm hơn
+  [174.6, 220, 293.7].forEach((f,i)=>{
     const osc = audioCtx.createOscillator();
-    osc.type='sine'; osc.frequency.value = f + (Math.random()-0.5)*2;
+    osc.type='sine'; osc.frequency.value = f + (Math.random()-0.5)*1.5;
     const g = audioCtx.createGain();
     g.gain.setValueAtTime(0, t);
-    g.gain.linearRampToValueAtTime(0.22/(i+1), t+0.04);
-    g.gain.exponentialRampToValueAtTime(0.001, t+3.4-i*0.4);
-    osc.connect(g); g.connect(masterGain);
-    osc.start(t); osc.stop(t+3.6);
+    g.gain.linearRampToValueAtTime(0.24/(i+1), t+0.05);
+    g.gain.exponentialRampToValueAtTime(0.001, t+4.2-i*0.4);
+    osc.connect(g);
+    connectWithReverb(g, 0.6);
+    osc.start(t); osc.stop(t+4.4);
   });
 }
 function playChime(){
   if(!audioCtx) return;
   const t = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
-  osc.type='sine'; osc.frequency.setValueAtTime(1100,t);
-  osc.frequency.exponentialRampToValueAtTime(700,t+0.5);
+  osc.type='sine'; osc.frequency.setValueAtTime(880,t);
+  osc.frequency.exponentialRampToValueAtTime(560,t+0.6);
   const g = audioCtx.createGain();
-  g.gain.setValueAtTime(0.18,t);
-  g.gain.exponentialRampToValueAtTime(0.001,t+0.9);
-  osc.connect(g); g.connect(masterGain);
-  osc.start(t); osc.stop(t+1);
+  g.gain.setValueAtTime(0.16,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+1.3);
+  osc.connect(g);
+  connectWithReverb(g, 0.4);
+  osc.start(t); osc.stop(t+1.4);
 }
 function playGong(){
   if(!audioCtx) return;
   const t = audioCtx.currentTime;
   const osc = audioCtx.createOscillator();
-  osc.type='sine'; osc.frequency.setValueAtTime(140,t);
-  osc.frequency.exponentialRampToValueAtTime(60,t+0.6);
+  osc.type='sine'; osc.frequency.setValueAtTime(110,t);
+  osc.frequency.exponentialRampToValueAtTime(48,t+0.7);
   const g = audioCtx.createGain();
   g.gain.setValueAtTime(0.5,t);
-  g.gain.exponentialRampToValueAtTime(0.001,t+2.2);
-  osc.connect(g); g.connect(masterGain);
-  osc.start(t); osc.stop(t+2.3);
-}
-function startAmbient(){
-  if(!audioCtx || ambientNodes) return;
-  const drone = audioCtx.createOscillator();
-  drone.type='sine'; drone.frequency.value=98;
-  const droneGain = audioCtx.createGain(); droneGain.gain.value=0.05;
-  drone.connect(droneGain); droneGain.connect(masterGain); drone.start();
-  const chimeTimer = setInterval(()=>{
-    if(Math.random()<0.6) playSparkle();
-  }, 7000+Math.random()*6000);
-  ambientNodes = {drone, droneGain, chimeTimer};
-}
-function stopAmbient(){
-  if(!ambientNodes) return;
-  ambientNodes.drone.stop();
-  clearInterval(ambientNodes.chimeTimer);
-  ambientNodes = null;
+  g.gain.exponentialRampToValueAtTime(0.001,t+3.0);
+  osc.connect(g);
+  connectWithReverb(g, 0.65);
+  osc.start(t); osc.stop(t+3.2);
 }
 function playSparkle(){
   if(!audioCtx) return;
   const t = audioCtx.currentTime;
-  const notes=[660,784,880,988];
+  const notes=[523,659,784,880];
   const f = notes[Math.floor(Math.random()*notes.length)];
   const osc = audioCtx.createOscillator();
   osc.type='sine'; osc.frequency.value=f;
   const g = audioCtx.createGain();
-  g.gain.setValueAtTime(0.08,t);
-  g.gain.exponentialRampToValueAtTime(0.001,t+1.2);
-  osc.connect(g); g.connect(masterGain);
-  osc.start(t); osc.stop(t+1.3);
+  g.gain.setValueAtTime(0.07,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+1.4);
+  osc.connect(g);
+  connectWithReverb(g, 0.5);
+  osc.start(t); osc.stop(t+1.5);
+}
+
+// tiếng vàng mã rơi vào lò — một khánh trầm nhỏ + tiếng giấy xào xạc
+function playBurnDrop(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  osc.type='sine'; osc.frequency.setValueAtTime(330,t);
+  osc.frequency.exponentialRampToValueAtTime(220,t+0.35);
+  const g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.14,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.7);
+  osc.connect(g);
+  connectWithReverb(g, 0.35);
+  osc.start(t); osc.stop(t+0.8);
+
+  const crackle = audioCtx.createBufferSource();
+  crackle.buffer = noiseBuffer;
+  const bp = audioCtx.createBiquadFilter();
+  bp.type='bandpass'; bp.frequency.value=2800; bp.Q.value=0.6;
+  const cg = audioCtx.createGain();
+  cg.gain.setValueAtTime(0.16,t);
+  cg.gain.exponentialRampToValueAtTime(0.001,t+0.4);
+  crackle.connect(bp); bp.connect(cg); cg.connect(masterGain);
+  crackle.start(t); crackle.stop(t+0.45);
+}
+
+/* ----- tiếng nước chảy (suối) — nhạc nền cùng nhóm với ambient drone ----- */
+function startWaterStream(){
+  const bufferSize = 3*audioCtx.sampleRate;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for(let i=0;i<bufferSize;i++) data[i] = Math.random()*2-1;
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer; noise.loop = true;
+
+  const bandpass = audioCtx.createBiquadFilter();
+  bandpass.type='bandpass'; bandpass.frequency.value=950; bandpass.Q.value=0.65;
+  const lowpass = audioCtx.createBiquadFilter();
+  lowpass.type='lowpass'; lowpass.frequency.value=2400;
+
+  const lfo = audioCtx.createOscillator();
+  lfo.type='sine'; lfo.frequency.value=0.13;
+  const lfoGain = audioCtx.createGain(); lfoGain.gain.value=260;
+  lfo.connect(lfoGain); lfoGain.connect(bandpass.frequency);
+
+  const waterGain = audioCtx.createGain();
+  waterGain.gain.value = 0.0;
+  waterGain.gain.linearRampToValueAtTime(0.065, audioCtx.currentTime+2.5);
+
+  noise.connect(bandpass); bandpass.connect(lowpass); lowpass.connect(waterGain); waterGain.connect(masterGain);
+  noise.start(); lfo.start();
+  return {noise, lfo, waterGain};
+}
+
+function startAmbient(){
+  if(!audioCtx || ambientNodes) return;
+  const drone = audioCtx.createOscillator();
+  drone.type='sine'; drone.frequency.value=80;
+  const droneGain = audioCtx.createGain(); droneGain.gain.value=0.045;
+  drone.connect(droneGain); droneGain.connect(masterGain); drone.start();
+
+  const water = startWaterStream();
+
+  const chimeTimer = setInterval(()=>{
+    if(Math.random()<0.6) playSparkle();
+  }, 8000+Math.random()*6000);
+
+  ambientNodes = {drone, droneGain, water, chimeTimer};
+}
+function stopAmbient(){
+  if(!ambientNodes) return;
+  ambientNodes.drone.stop();
+  ambientNodes.water.noise.stop();
+  ambientNodes.water.lfo.stop();
+  clearInterval(ambientNodes.chimeTimer);
+  ambientNodes = null;
 }
 
 const ambientBtn = document.getElementById('ambientBtn');
@@ -791,9 +1053,10 @@ ambientBtn.addEventListener('click', ()=>{
 /* ====================== UI: counter / intro / mantra ====================== */
 const counterNumEl = document.getElementById('counterNum');
 const counterFruitNumEl = document.getElementById('counterFruitNum');
+const counterVotiveNumEl = document.getElementById('counterVotiveNum');
 const introEl = document.getElementById('intro');
 const mantraEl = document.getElementById('mantra');
-let counterValue = 0, fruitCounterValue = 0, introHidden = false, mantraTimer = null;
+let counterValue = 0, fruitCounterValue = 0, votiveCounterValue = 0, introHidden = false, mantraTimer = null;
 
 function hideIntro(){ if(!introHidden){ introHidden=true; introEl.classList.add('hide'); } }
 function showMantra(){
@@ -859,9 +1122,11 @@ const btnWish = document.getElementById('btnWish');
 const wishText = document.getElementById('wishText');
 function closeFruitPanel(){ fruitPanel.classList.remove('open'); btnFruit.classList.remove('active'); }
 function closeWishPanel(){ wishPanel.classList.remove('open'); btnWish.classList.remove('active'); }
+function closeVotivePanel(){ votivePanel.classList.remove('open'); btnVotive.classList.remove('active'); }
+function closeAllPanels(){ closeFruitPanel(); closeWishPanel(); closeVotivePanel(); }
 btnWish.addEventListener('click', ()=>{
   const willOpen = !wishPanel.classList.contains('open');
-  closeFruitPanel();
+  closeAllPanels();
   wishPanel.classList.toggle('open', willOpen);
   btnWish.classList.toggle('active', willOpen);
   if(willOpen) hideIntro();
@@ -886,7 +1151,7 @@ const fruitPanel = document.getElementById('fruitPanel');
 const btnFruit = document.getElementById('btnFruit');
 btnFruit.addEventListener('click', ()=>{
   const willOpen = !fruitPanel.classList.contains('open');
-  closeWishPanel();
+  closeAllPanels();
   fruitPanel.classList.toggle('open', willOpen);
   btnFruit.classList.toggle('active', willOpen);
   if(willOpen) hideIntro();
@@ -900,12 +1165,30 @@ document.querySelectorAll('.fruitBtn').forEach(btn=>{
 });
 document.getElementById('btnTraLe').addEventListener('click', doTraLe);
 
+/* votive panel (đốt vàng mã) */
+const votivePanel = document.getElementById('votivePanel');
+const btnVotive = document.getElementById('btnVotive');
+btnVotive.addEventListener('click', ()=>{
+  const willOpen = !votivePanel.classList.contains('open');
+  closeAllPanels();
+  votivePanel.classList.toggle('open', willOpen);
+  btnVotive.classList.toggle('active', willOpen);
+  if(willOpen) hideIntro();
+});
+document.getElementById('votiveClose').addEventListener('click', closeVotivePanel);
+document.querySelectorAll('.votiveBtn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    spawnVotive(btn.dataset.votive);
+    closeVotivePanel();
+  });
+});
+
 /* ====================== INPUT: tap to interact, drag to orbit ====================== */
 const raycaster = new THREE.Raycaster();
 const mouseNDC = new THREE.Vector2();
 let isDragging=false, dragMoved=false, lastX=0,lastY=0,downX=0,downY=0;
 const DRAG_SENS = 0.0042;
-const hitTargets = [incenseHitbox, bowlHitbox, trayHitbox];
+const hitTargets = [incenseHitbox, bowlHitbox, trayHitbox, brazierHitbox];
 
 function tryHit(clientX,clientY){
   mouseNDC.x = (clientX/window.innerWidth)*2-1;
@@ -915,7 +1198,8 @@ function tryHit(clientX,clientY){
   if(!hits.length) return null;
   if(hits[0].object === incenseHitbox) return 'incense';
   if(hits[0].object === bowlHitbox) return 'bowl';
-  return 'tray';
+  if(hits[0].object === trayHitbox) return 'tray';
+  return 'brazier';
 }
 
 canvas.addEventListener('pointerdown',(e)=>{
@@ -944,8 +1228,12 @@ window.addEventListener('pointerup',(e)=>{
     if(h==='incense') doLightIncense();
     else if(h==='bowl') doRingBowl();
     else if(h==='tray'){
-      closeWishPanel();
+      closeAllPanels();
       fruitPanel.classList.add('open'); btnFruit.classList.add('active');
+      hideIntro();
+    } else if(h==='brazier'){
+      closeAllPanels();
+      votivePanel.classList.add('open'); btnVotive.classList.add('active');
       hideIntro();
     }
   }
@@ -1022,6 +1310,65 @@ function animate(){
         o.materials.forEach(m=>{ m.opacity = 1-k; });
       }
     }
+  }
+
+  // brazier: lửa nhấp nháy liên tục
+  const brazierFlicker = 0.85 + Math.sin(idleClock*9 + Math.sin(idleClock*3.3))*0.12 + Math.random()*0.05;
+  brazierFlame.material.opacity = Math.min(1, Math.max(0.55, brazierFlicker));
+  brazierFlame.scale.set(0.28+Math.random()*0.04, 0.34+Math.random()*0.06, 1);
+  brazierLight.intensity = 0.8 + brazierFlicker*0.5;
+
+  // votive items: rơi vào lò -> bốc cháy -> hóa tro
+  for(let i=votiveItems.length-1;i>=0;i--){
+    const v = votiveItems[i];
+    if(v.drop){
+      const t = (now-v.drop.start)/v.drop.duration;
+      const tc = Math.min(Math.max(t,0),1);
+      v.wrapper.position.lerpVectors(v.drop.from, v.drop.to, EASE3(tc));
+      v.wrapper.rotation.x += dt*2.2; v.wrapper.rotation.z += dt*1.6;
+      if(t >= 1){ v.wrapper.position.copy(v.drop.to); v.drop = null; v.burnStart = now; }
+      continue;
+    }
+    if(v.burnStart !== null){
+      const bt = (now-v.burnStart)/BURN_DURATION;
+      const k = Math.min(Math.max(bt,0),1);
+      v.materials.forEach(m=>{
+        m.emissive.setRGB(1, 0.32-k*0.2, 0.06);
+        m.emissiveIntensity = Math.sin(k*Math.PI)*1.8 + k*0.6;
+        m.opacity = Math.max(0, 1-k*1.05);
+      });
+      const sc = Math.max(0.05, 1-k*0.85);
+      v.wrapper.scale.set(sc,sc,sc);
+      v.wrapper.position.y += dt*0.04;
+      if(now - v.lastAsh > 130){
+        v.lastAsh = now;
+        const originWorld = new THREE.Vector3(); v.wrapper.getWorldPosition(originWorld);
+        spawnAshBurst(originWorld);
+      }
+      if(bt >= 1){
+        scene.remove(v.wrapper);
+        v.wrapper.traverse(n=>{ if(n.geometry) n.geometry.dispose(); });
+        v.materials.forEach(m=>m.dispose());
+        votiveItems.splice(i,1);
+      }
+    }
+  }
+
+  // ash & ember particles bay lên từ lò hóa vàng
+  for(let i=ashParticles.length-1;i>=0;i--){
+    const a = ashParticles[i];
+    a.life += dt;
+    const lt = a.life/a.maxLife;
+    if(lt >= 1){
+      scene.remove(a.spr); a.mat.dispose();
+      ashParticles.splice(i,1);
+      continue;
+    }
+    a.vel.y -= (a.isEmber ? 0.55 : 0.15) * dt;
+    a.spr.position.addScaledVector(a.vel, dt);
+    a.spr.position.x += Math.sin(now*0.004+i)*0.0015;
+    const op = lt<0.12 ? lt/0.12 : Math.max(0, 1-(lt-0.12)/0.88);
+    a.mat.opacity = op * (a.isEmber ? 0.95 : 0.5);
   }
 
   // blessing particles: ánh sáng từ khay lễ bay lên tượng khi trả lễ
