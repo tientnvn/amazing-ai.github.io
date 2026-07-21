@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Động Lực Mỗi Ngày</title>
+<style>
+  :root { color-scheme: light; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, #fef6e4 0%, #f3e8ff 50%, #e0f2fe 100%);
+    color: #1f2937;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  header h1 {
+    font-size: 1.8rem;
+    margin: 0 0 4px;
+    color: #7c3aed;
+  }
+  header p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.95rem;
+  }
+  .card {
+    background: rgba(255,255,255,0.85);
+    border-radius: 18px;
+    padding: 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 20px rgba(124, 58, 237, 0.08);
+    border: 1px solid rgba(124, 58, 237, 0.08);
+  }
+  .quote-card {
+    text-align: center;
+    background: linear-gradient(135deg, #f5f3ff, #eef2ff);
+  }
+  .quote-text {
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.5;
+    color: #4c1d95;
+    margin-bottom: 8px;
+    min-height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+  }
+  .quote-author {
+    color: #7c3aed;
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+  }
+  button {
+    border: none;
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  button:active { transform: scale(0.96); }
+  .btn-primary {
+    background: #7c3aed;
+    color: white;
+    box-shadow: 0 4px 12px rgba(124,58,237,0.3);
+  }
+  .btn-primary:hover { box-shadow: 0 6px 16px rgba(124,58,237,0.4); }
+  .btn-secondary {
+    background: #e0e7ff;
+    color: #4338ca;
+  }
+  .row-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .row-title h2 {
+    font-size: 1.05rem;
+    margin: 0;
+    color: #374151;
+  }
+  .streak {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: #f59e0b;
+    font-size: 0.95rem;
+  }
+  .progress-outer {
+    background: #ede9fe;
+    border-radius: 999px;
+    height: 14px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .progress-inner {
+    height: 100%;
+    background: linear-gradient(90deg, #a78bfa, #7c3aed);
+    border-radius: 999px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+  .progress-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    text-align: right;
+  }
+  .goal-input-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .goal-input-row input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #ddd6fe;
+    font-size: 0.95rem;
+    outline: none;
+  }
+  .goal-input-row input:focus { border-color: #7c3aed; }
+  ul.goal-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .goal-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-radius: 10px;
+    transition: background 0.15s ease;
+  }
+  .goal-item:hover { background: #f5f3ff; }
+  .goal-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #7c3aed;
+    cursor: pointer;
+  }
+  .goal-item span {
+    flex: 1;
+    font-size: 0.98rem;
+  }
+  .goal-item.done span {
+    text-decoration: line-through;
+    color: #9ca3af;
+  }
+  .goal-item .del {
+    color: #d1d5db;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+  .goal-item .del:hover { color: #ef4444; background: #fee2e2; }
+  .empty-hint {
+    color: #9ca3af;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 20px 0;
+  }
+  .timer-card {
+    text-align: center;
+  }
+  .timer-display {
+    font-size: 2.6rem;
+    font-weight: 700;
+    color: #7c3aed;
+    margin: 10px 0;
+    font-family: 'SF Mono', Consolas, monospace;
+  }
+  .timer-controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 12px;
+  }
+  .celebrate {
+    text-align: center;
+    font-size: 0.95rem;
+    color: #059669;
+    font-weight: 600;
+    margin-top: 10px;
+    min-height: 20px;
+  }
+  footer {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 0.8rem;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="greeting">Chào bạn! ✨</h1>
+    <p id="today"></p>
+  </header>
+
+  <div class="card quote-card">
+    <div class="quote-text" id="quoteText"></div>
+    <div class="quote-author" id="quoteAuthor"></div>
+    <button class="btn-primary" id="newQuoteBtn">Câu khác 🔄</button>
+  </div>
+
+  <div class="card">
+    <div class="row-title">
+      <h2>🎯 Mục tiêu hôm nay</h2>
+      <div class="streak" id="streakDisplay">🔥 0 ngày</div>
+    </div>
+    <div class="progress-outer"><div class="progress-inner" id="progressBar"></div></div>
+    <div class="progress-label" id="progressLabel">0/0 hoàn thành</div>
+    <div class="goal-input-row">
+      <input type="text" id="goalInput" placeholder="Thêm một việc cần làm hôm nay..." />
+      <button class="btn-primary" id="addGoalBtn">Thêm</button>
+    </div>
+    <ul class="goal-list" id="goalList"></ul>
+    <div class="empty-hint" id="emptyHint">Chưa có mục tiêu nào — thêm việc đầu tiên để bắt đầu!</div>
+    <div class="celebrate" id="celebrate"></div>
+  </div>
+
+  <div class="card timer-card">
+    <div class="row-title" style="justify-content:center;">
+      <h2>⏱️ Phiên tập trung (Pomodoro)</h2>
+    </div>
+    <div class="timer-display" id="timerDisplay">25:00</div>
+    <div class="timer-controls">
+      <button class="btn-primary" id="startBtn">Bắt đầu</button>
+      <button class="btn-secondary" id="resetBtn">Đặt lại</button>
+    </div>
+    <div class="celebrate" id="timerMsg"></div>
+  </div>
+
+  <footer>Dữ liệu chỉ lưu trong phiên làm việc này — mở lại trang sẽ bắt đầu mới. Cố lên, bạn làm được! 💪</footer>
+</div>
+
+<script>
+  // ---------- Quotes ----------
+  const quotes = [
+    { text: "Đừng đợi cơ hội, hãy tạo ra nó.", author: "— Khuyết danh" },
+    { text: "Thành công là tổng của những nỗ lực nhỏ, lặp lại mỗi ngày.", author: "— Robert Collier" },
+    { text: "Bạn không cần phải giỏi để bắt đầu, nhưng phải bắt đầu để giỏi.", author: "— Khuyết danh" },
+    { text: "Làm việc chăm chỉ hôm nay để có thể mỉm cười ngày mai.", author: "— Khuyết danh" },
+    { text: "Kỷ luật là cầu nối giữa mục tiêu và thành tựu.", author: "— Jim Rohn" },
+    { text: "Đừng sợ đi chậm, chỉ sợ đứng yên.", author: "— Tục ngữ Trung Hoa" },
+    { text: "Hành động nhỏ mỗi ngày tạo nên kết quả lớn theo thời gian.", author: "— Khuyết danh" },
+    { text: "Người thành công không phải người chưa từng thất bại, mà là người không bỏ cuộc.", author: "— Khuyết danh" },
+    { text: "Bận rộn không có nghĩa là hiệu quả. Tập trung mới là chìa khóa.", author: "— Khuyết danh" },
+    { text: "Bạn mạnh mẽ hơn những gì bạn nghĩ, và gần thành công hơn bạn tưởng.", author: "— Khuyết danh" },
+    { text: "Mỗi chuyên gia đều từng là người mới bắt đầu.", author: "— Khuyết danh" },
+    { text: "Đừng so sánh ngày 1 của bạn với ngày 100 của người khác.", author: "— Khuyết danh" },
+    { text: "Năng lượng và sự bền bỉ chinh phục mọi thứ.", author: "— Benjamin Franklin" },
+    { text: "Việc khó khăn hôm nay là thứ khiến ngày mai trở nên xứng đáng.", author: "— Khuyết danh" },
+    { text: "Bạn không cần thấy cả cầu thang, chỉ cần bước bước đầu tiên.", author: "— Martin Luther King Jr." }
+  ];
+
+  let lastQuoteIdx = -1;
+  function showRandomQuote() {
+    let idx;
+    do { idx = Math.floor(Math.random() * quotes.length); } while (idx === lastQuoteIdx && quotes.length > 1);
+    lastQuoteIdx = idx;
+    const q = quotes[idx];
+    const textEl = document.getElementById('quoteText');
+    const authorEl = document.getElementById('quoteAuthor');
+    textEl.style.opacity = 0;
+    setTimeout(() => {
+      textEl.textContent = '“' + q.text + '”';
+      authorEl.textContent = q.author;
+      textEl.style.opacity = 1;
+    }, 150);
+  }
+  document.getElementById('newQuoteBtn').addEventListener('click', showRandomQuote);
+  showRandomQuote();
+
+  // ---------- Greeting & date ----------
+  const now = new Date();
+  const hour = now.getHours();
+  let greet = "Chào bạn! ✨";
+  if (hour < 11) greet = "Chào buổi sáng! ☀️";
+  else if (hour < 14) greet = "Chào buổi trưa! 🌤️";
+  else if (hour < 18) greet = "Chào buổi chiều! 🌇";
+  else greet = "Chào buổi tối! 🌙";
+  document.getElementById('greeting').textContent = greet;
+  document.getElementById('today').textContent = now.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+  // ---------- Goals (in-memory only) ----------
+  let goals = [];
+  let streak = 0;
+
+  function renderGoals() {
+    const list = document.getElementById('goalList');
+    const hint = document.getElementById('emptyHint');
+    list.innerHTML = '';
+    if (goals.length === 0) {
+      hint.style.display = 'block';
+    } else {
+      hint.style.display = 'none';
+      goals.forEach((g, i) => {
+        const li = document.createElement('li');
+        li.className = 'goal-item' + (g.done ? ' done' : '');
+        li.innerHTML = `
+          <input type="checkbox" ${g.done ? 'checked' : ''} data-idx="${i}" class="goal-check" />
+          <span>${escapeHtml(g.text)}</span>
+          <span class="del" data-idx="${i}">✕</span>
+        `;
+        list.appendChild(li);
+      });
+    }
+    updateProgress();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function updateProgress() {
+    const total = goals.length;
+    const done = goals.filter(g => g.done).length;
+    const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = `${done}/${total} hoàn thành`;
+    const celebrate = document.getElementById('celebrate');
+    if (total > 0 && done === total) {
+      celebrate.textContent = '🎉 Tuyệt vời! Bạn đã hoàn thành hết mục tiêu hôm nay!';
+    } else {
+      celebrate.textContent = '';
+    }
+  }
+
+  document.getElementById('addGoalBtn').addEventListener('click', addGoal);
+  document.getElementById('goalInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addGoal();
+  });
+
+  function addGoal() {
+    const input = document.getElementById('goalInput');
+    const val = input.value.trim();
+    if (!val) return;
+    goals.push({ text: val, done: false });
+    input.value = '';
+    renderGoals();
+  }
+
+  document.getElementById('goalList').addEventListener('click', (e) => {
+    if (e.target.classList.contains('goal-check')) {
+      const idx = +e.target.dataset.idx;
+      goals[idx].done = e.target.checked;
+      const wasComplete = goals.length > 0 && goals.every(g => g.done);
+      renderGoals();
+      if (wasComplete) {
+        streak += 1;
+        document.getElementById('streakDisplay').textContent = `🔥 ${streak} lần hoàn thành`;
+      }
+    } else if (e.target.classList.contains('del')) {
+      const idx = +e.target.dataset.idx;
+      goals.splice(idx, 1);
+      renderGoals();
+    }
+  });
+
+  renderGoals();
+
+  // ---------- Pomodoro Timer ----------
+  let timerSeconds = 25 * 60;
+  let timerInterval = null;
+  let running = false;
+
+  function formatTime(s) {
+    const m = Math.floor(s / 60).toString().padStart(2, '0');
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${m}:${sec}`;
+  }
+
+  function updateTimerDisplay() {
+    document.getElementById('timerDisplay').textContent = formatTime(timerSeconds);
+  }
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    if (running) {
+      clearInterval(timerInterval);
+      running = false;
+      document.getElementById('startBtn').textContent = 'Tiếp tục';
+    } else {
+      running = true;
+      document.getElementById('startBtn').textContent = 'Tạm dừng';
+      document.getElementById('timerMsg').textContent = '';
+      timerInterval = setInterval(() => {
+        timerSeconds--;
+        updateTimerDisplay();
+        if (timerSeconds <= 0) {
+          clearInterval(timerInterval);
+          running = false;
+          document.getElementById('startBtn').textContent = 'Bắt đầu';
+          document.getElementById('timerMsg').textContent = '🎉 Xong 1 phiên tập trung! Nghỉ chút rồi tiếp tục nhé.';
+        }
+      }, 1000);
+    }
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    clearInterval(timerInterval);
+    running = false;
+    timerSeconds = 25 * 60;
+    updateTimerDisplay();
+    document.getElementById('startBtn').textContent = 'Bắt đầu';
+    document.getElementById('timerMsg').textContent = '';
+  });
+
+  updateTimerDisplay();
+</script>
+</body>
+</html>
