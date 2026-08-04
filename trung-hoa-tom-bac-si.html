@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hướng Dẫn Trung Hoà Tôm Bác Sĩ & Tôm Y Tá</title>
+  <style>
+    :root {
+      --ocean-deep: #0a1628;
+      --ocean-mid: #0d2745;
+      --ocean-blue: #1a4a7a;
+      --ocean-teal: #0e7490;
+      --ocean-cyan: #06b6d4;
+      --ocean-light: #67e8f9;
+      --sand: #f0e6d3;
+      --coral: #f97316;
+      --coral-light: #fed7aa;
+      --green: #22c55e;
+      --green-light: #bbf7d0;
+      --yellow: #eab308;
+      --yellow-light: #fef08a;
+      --red: #ef4444;
+      --red-light: #fecaca;
+      --text-main: #e2f4fc;
+      --text-muted: #93c5d1;
+      --card-bg: rgba(13, 39, 69, 0.85);
+      --card-border: rgba(6, 182, 212, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--ocean-deep);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated ocean background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 80%, rgba(14, 116, 144, 0.3) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(6, 182, 212, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 50%, rgba(26, 74, 122, 0.4) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 3rem 1rem 2.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero-icon {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 0.75rem;
+      filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.6));
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .hero h1 {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      line-height: 1.2;
+      background: linear-gradient(135deg, var(--ocean-light), var(--ocean-cyan), #60a5fa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .hero-badges {
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 1.25rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.35);
+      color: var(--ocean-cyan);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: 999px;
+    }
+
+    /* Section title */
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--ocean-cyan);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      letter-spacing: 0.01em;
+    }
+
+    /* Info cards grid */
+    .shrimp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 580px) {
+      .shrimp-grid { grid-template-columns: 1fr; }
+    }
+
+    .shrimp-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      backdrop-filter: blur(12px);
+    }
+
+    .shrimp-card .card-icon { font-size: 2.5rem; margin-bottom: 0.6rem; }
+    .shrimp-card h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--ocean-light);
+      margin-bottom: 0.25rem;
+    }
+    .shrimp-card .sci-name {
+      font-style: italic;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    .shrimp-card p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    .shrimp-card .params {
+      margin-top: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .param-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+    }
+    .param-row .label { color: var(--text-muted); }
+    .param-row .value { font-weight: 600; color: var(--ocean-light); }
+
+    /* Alert box */
+    .alert {
+      display: flex;
+      gap: 0.85rem;
+      padding: 1rem 1.25rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+    .alert-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 1px; }
+    .alert-warning {
+      background: rgba(234, 179, 8, 0.12);
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      color: #fde68a;
+    }
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #fca5a5;
+    }
+    .alert-tip {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+    }
+    .alert strong { display: block; margin-bottom: 0.2rem; font-size: 0.95rem; }
+
+    /* Steps */
+    .steps { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 2rem; }
+
+    .step {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 1rem;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 1.25rem;
+      backdrop-filter: blur(12px);
+      transition: border-color 0.2s;
+    }
+    .step:hover { border-color: rgba(6, 182, 212, 0.5); }
+
+    .step-num {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--ocean-teal), var(--ocean-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: white;
+      flex-shrink: 0;
+      box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
+    }
+
+    .step-body h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--ocean-light);
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .step-body p {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+    }
+
+    .step-body .time-badge {
+      display: inline-block;
+      background: rgba(6, 182, 212, 0.15);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: var(--ocean-cyan);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.15rem 0.55rem;
+      border-radius: 999px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+
+    .step-body ul {
+      margin-top: 0.5rem;
+      padding-left: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .step-body ul li {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .step-body ul li span { color: var(--ocean-light); font-weight: 600; }
+
+    /* Tips grid */
+    .tips-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .tip-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+      backdrop-filter: blur(12px);
+    }
+    .tip-card .tip-icon { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .tip-card h4 { font-size: 0.95rem; font-weight: 700; color: var(--ocean-light); margin-bottom: 0.3rem; }
+    .tip-card p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; }
+
+    /* Danger signs */
+    .signs-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 480px) { .signs-grid { grid-template-columns: 1fr; } }
+
+    .sign-card {
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+    }
+    .sign-bad {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .sign-good {
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.25);
+    }
+    .sign-card h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .sign-bad h4 { color: #fca5a5; }
+    .sign-good h4 { color: #86efac; }
+    .sign-card ul { padding-left: 1rem; display: flex; flex-direction: column; gap: 0.25rem; }
+    .sign-card ul li { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+
+    /* Params table */
+    .params-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin-bottom: 2rem;
+    }
+    .params-table th {
+      background: rgba(6, 182, 212, 0.15);
+      color: var(--ocean-cyan);
+      font-weight: 700;
+      padding: 0.75rem 1rem;
+      text-align: left;
+    }
+    .params-table td {
+      padding: 0.7rem 1rem;
+      color: var(--text-muted);
+      border-bottom: 1px solid rgba(6, 182, 212, 0.1);
+    }
+    .params-table td:last-child { color: var(--ocean-light); font-weight: 600; }
+    .params-table tr:hover td { background: rgba(6, 182, 212, 0.05); }
+    .params-table { border-radius: 12px; overflow: hidden; border: 1px solid var(--card-border); }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid rgba(6, 182, 212, 0.15);
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+    .footer a { color: var(--ocean-cyan); text-decoration: none; }
+
+    /* Divider */
+    .section { margin-bottom: 2.5rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Hero -->
+  <div class="hero">
+    <span class="hero-icon">🦐</span>
+    <h1>Hướng Dẫn Trung Hoà<br/>Tôm Bác Sĩ & Tôm Y Tá</h1>
+    <p class="hero-subtitle">
+      Quy trình acclimate đúng chuẩn giúp tôm thích nghi an toàn với hồ cá biển,
+      tránh sốc nước và tăng tỷ lệ sống sót.
+    </p>
+    <div class="hero-badges">
+      <span class="badge">⏱ 60–90 phút</span>
+      <span class="badge">💧 Drip Acclimation</span>
+      <span class="badge">🌊 Hồ cá biển</span>
+    </div>
+  </div>
+
+  <!-- Giới thiệu loài -->
+  <div class="section">
+    <div class="section-title">🔬 Tìm Hiểu Về Loài</div>
+    <div class="shrimp-grid">
+      <div class="shrimp-card">
+        <div class="card-icon">👨‍⚕️</div>
+        <h3>Tôm Bác Sĩ</h3>
+        <div class="sci-name">Lysmata amboinensis · Skunk Cleaner Shrimp</div>
+        <p>Nổi tiếng với khả năng làm sạch ký sinh trùng và mô hoại tử trên da cá. Thường sống theo cặp hoặc nhóm nhỏ tại các "trạm làm sạch" cố định.</p>
+        <div class="params">
+          <div class="param-row"><span class="label">Nhiệt độ</span><span class="value">24–28°C</span></div>
+          <div class="param-row"><span class="label">Độ mặn (SG)</span><span class="value">1.023–1.026</span></div>
+          <div class="param-row"><span class="label">pH</span><span class="value">8.1–8.4</span></div>
+          <div class="param-row"><span class="label">KH</span><span class="value">8–12 dKH</span></div>
+        </div>
+      </div>
+
+      <div class="shrimp-card">
+        <div class="card-icon">👩‍⚕️</div>
+        <h3>Tôm Y Tá</h3>
+        <div class="sci-name">Lysmata debelius · Fire Shrimp / Blood Shrimp</div>
+        <p>Màu đỏ rực đặc trưng với đốm trắng, thường ẩn náu trong hang đá. Cũng có khả năng làm sạch cá nhưng nhút nhát hơn tôm bác sĩ.</p>
+        <div class="params">
+          <div class="param-row"><span class="label">Nhiệt độ</span><span class="value">24–27°C</span></div>
+          <div class="param-row"><span class="label">Độ mặn (SG)</span><span class="value">1.023–1.026</span></div>
+          <div class="param-row"><span class="label">pH</span><span class="value">8.1–8.4</span></div>
+          <div class="param-row"><span class="label">KH</span><span class="value">8–12 dKH</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cảnh báo quan trọng -->
+  <div class="section">
+    <div class="alert alert-danger">
+      <span class="alert-icon">⚠️</span>
+      <div>
+        <strong>Tôm cực nhạy cảm với thay đổi đột ngột!</strong>
+        Tôm (và các loài giáp xác nói chung) dễ chết sốc hơn cá rất nhiều. Không bao giờ đổ thẳng tôm từ túi vào hồ. Chênh lệch độ mặn dù chỉ 0.002 SG cũng có thể gây tử vong trong vài giờ.
+      </div>
+    </div>
+
+    <div class="alert alert-warning">
+      <span class="alert-icon">🚫</span>
+      <div>
+        <strong>Tuyệt đối không dùng phương pháp túi nổi (floating bag)!</strong>
+        Floating bag chỉ cân bằng nhiệt độ, <em>không cân bằng độ mặn hay pH</em>. Với tôm biển, bắt buộc phải dùng phương pháp nhỏ giọt (drip acclimation).
+      </div>
+    </div>
+  </div>
+
+  <!-- Chuẩn bị -->
+  <div class="section">
+    <div class="section-title">🛒 Chuẩn Bị Dụng Cụ</div>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-icon">🪣</div>
+        <h4>Xô / thau nhỏ</h4>
+        <p>3–5 lít, sạch, không dính xà phòng hay hoá chất. Dùng riêng cho việc acclimate.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🧶</div>
+        <h4>Dây nhỏ giọt (drip line)</h4>
+        <p>Ống silicone nhỏ hoặc dây truyền dịch y tế. Cần có khoá chỉnh tốc độ giọt.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">📎</div>
+        <h4>Kẹp cố định dây</h4>
+        <p>Kẹp dây vào miệng hồ để duy trì dòng nhỏ giọt ổn định, không bị tuột.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🌡️</div>
+        <h4>Nhiệt kế & khúc xạ kế</h4>
+        <p>Đo nhiệt độ và độ mặn của nước túi + nước hồ trước khi bắt đầu.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">⏰</div>
+        <h4>Đồng hồ hẹn giờ</h4>
+        <p>Theo dõi thời gian từng bước, tránh acclimate quá nhanh hoặc quá lâu.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🔦</div>
+        <h4>Đèn pin nhỏ / đèn đỏ</h4>
+        <p>Dùng đèn đỏ dim để quan sát tôm mà không gây stress ánh sáng mạnh.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Các bước thực hiện -->
+  <div class="section">
+    <div class="section-title">📋 Quy Trình Từng Bước</div>
+    <div class="steps">
+
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h4>🌑 Tắt đèn hồ <span class="time-badge">Trước 30 phút</span></h4>
+          <p>Tắt đèn hồ chính trước khi bắt đầu ít nhất 30 phút. Môi trường tối giúp giảm stress cho cả tôm mới và cá trong hồ, hạn chế tôm bị tấn công khi mới thả vào.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h4>📦 Mở túi & đổ vào xô <span class="time-badge">0 phút</span></h4>
+          <p>Mở túi và đổ toàn bộ nước + tôm vào xô acclimate. <strong>Không đổ nước túi vào hồ.</strong> Đo nhiệt độ và độ mặn nước túi để biết mức chênh lệch so với hồ.</p>
+          <ul>
+            <li>Nếu chênh nhiệt độ &gt; 3°C → ổn định nhiệt trước (ngâm xô vào hồ 15 phút)</li>
+            <li>Ghi lại SG nước túi để tính tốc độ nhỏ giọt phù hợp</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h4>💧 Bắt đầu nhỏ giọt <span class="time-badge">0–60 phút</span></h4>
+          <p>Cắm một đầu dây vào hồ chính, đầu còn lại vào xô. Chỉnh khoá để đạt tốc độ:</p>
+          <ul>
+            <li><span>2–3 giọt/giây</span> nếu chênh lệch SG &lt; 0.003</li>
+            <li><span>1–2 giọt/giây</span> nếu chênh lệch SG từ 0.003–0.006</li>
+            <li><span>1 giọt/giây</span> nếu chênh lệch SG &gt; 0.006 (cần 90+ phút)</li>
+          </ul>
+          <p style="margin-top: 0.5rem;">Mục tiêu: <strong>tăng gấp đôi lượng nước trong xô</strong> trước khi chuyển tôm vào hồ.</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h4>🪣 Bỏ bớt nước xô <span class="time-badge">Giữa chừng</span></h4>
+          <p>Khi nước trong xô đã tăng gấp đôi lần đầu, chắt bỏ khoảng một nửa nước trong xô (giữ lại tôm). Sau đó tiếp tục nhỏ giọt thêm 30 phút nữa. Thao tác này giúp loại bỏ nước cũ từ túi vận chuyển (thường có NH₃ tích lũy cao).</p>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h4>📊 Kiểm tra thông số cuối <span class="time-badge">Trước khi thả</span></h4>
+          <p>Đo SG và nhiệt độ nước trong xô. Đảm bảo:</p>
+          <ul>
+            <li>Chênh SG so với hồ: <span>&lt; 0.001</span></li>
+            <li>Chênh nhiệt độ: <span>&lt; 1°C</span></li>
+            <li>Tôm đang bơi bình thường, không nằm nghiêng</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h4>🌊 Thả tôm vào hồ <span class="time-badge">Phút cuối</span></h4>
+          <p>Dùng vợt mịn hoặc cốc nhỏ để chuyển tôm vào hồ, <strong>không đổ nước xô vào hồ</strong>. Thả nhẹ nhàng gần khu vực có đá rạn để tôm nhanh tìm chỗ ẩn náu. Bật đèn trở lại sau 1–2 giờ.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Thông số chuẩn -->
+  <div class="section">
+    <div class="section-title">📊 Thông Số Nước Lý Tưởng</div>
+    <table class="params-table">
+      <thead>
+        <tr>
+          <th>Thông số</th>
+          <th>Ý nghĩa</th>
+          <th>Giá trị lý tưởng</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Nhiệt độ</td>
+          <td>Ảnh hưởng trao đổi chất, hô hấp</td>
+          <td>24–27°C</td>
+        </tr>
+        <tr>
+          <td>Độ mặn (SG)</td>
+          <td>Áp suất thẩm thấu qua vỏ kitin</td>
+          <td>1.023–1.026</td>
+        </tr>
+        <tr>
+          <td>pH</td>
+          <td>Cân bằng hệ đệm carbon</td>
+          <td>8.1–8.4</td>
+        </tr>
+        <tr>
+          <td>Ammonia (NH₃)</td>
+          <td>Độc tố từ phân huỷ hữu cơ</td>
+          <td>0 ppm</td>
+        </tr>
+        <tr>
+          <td>Nitrite (NO₂)</td>
+          <td>Trung gian chu trình Nitơ</td>
+          <td>0 ppm</td>
+        </tr>
+        <tr>
+          <td>Nitrate (NO₃)</td>
+          <td>Sản phẩm cuối chu trình Nitơ</td>
+          <td>&lt; 10 ppm</td>
+        </tr>
+        <tr>
+          <td>Calcium (Ca)</td>
+          <td>Hỗ trợ lột xác, tái tạo vỏ</td>
+          <td>380–450 ppm</td>
+        </tr>
+        <tr>
+          <td>Magnesium (Mg)</td>
+          <td>Ổn định nồng độ Ca, KH</td>
+          <td>1250–1350 ppm</td>
+        </tr>
+        <tr>
+          <td>Iodine (I)</td>
+          <td>Hỗ trợ lột xác khoẻ mạnh</td>
+          <td>Trace (dùng supplement nhẹ)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Dấu hiệu -->
+  <div class="section">
+    <div class="section-title">🔍 Nhận Biết Tôm Khoẻ / Stress</div>
+    <div class="signs-grid">
+      <div class="sign-card sign-good">
+        <h4>✅ Tôm khoẻ mạnh</h4>
+        <ul>
+          <li>Bơi chủ động, vẫy râu liên tục</li>
+          <li>Nhanh chóng tìm hang/đá ẩn náu</li>
+          <li>Đứng vững trên đá, không trôi dạt</li>
+          <li>Màu sắc tươi sáng, không nhạt</li>
+          <li>Sau 24h bắt đầu ra khám phá hồ</li>
+        </ul>
+      </div>
+      <div class="sign-card sign-bad">
+        <h4>⚠️ Dấu hiệu stress / nguy hiểm</h4>
+        <ul>
+          <li>Nằm nghiêng hoặc ngửa dưới đáy</li>
+          <li>Bơi không kiểm soát, xoay vòng</li>
+          <li>Màu sắc nhợt nhạt, mờ đục</li>
+          <li>Không phản ứng khi chạm nhẹ</li>
+          <li>Chân bơi co rút, râu gập lại</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert alert-tip" style="margin-top: 1rem; margin-bottom: 0;">
+      <span class="alert-icon">💡</span>
+      <div>
+        <strong>Mẹo: Kiểm tra sau 2–4 giờ đầu</strong>
+        Sau khi thả, để yên hồ trong bóng tối 1–2 giờ. Dùng đèn đỏ dim kiểm tra sau đó. Nếu tôm đã leo lên đá và vẫy râu → acclimate thành công!
+      </div>
+    </div>
+  </div>
+
+  <!-- Lưu ý sau thả -->
+  <div class="section">
+    <div class="section-title">📌 Lưu Ý Sau Khi Thả</div>
+    <div class="tips-grid">
+      <div class="tip-card">
+        <div class="tip-icon">🐟</div>
+        <h4>Kiểm tra hồ bạn</h4>
+        <p>Một số loài cá như cá sư tử, cá mao tiên, cua có thể tấn công tôm. Đảm bảo hồ phù hợp trước khi thả.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🦀</div>
+        <h4>Tôm cần lột xác</h4>
+        <p>Sau stress vận chuyển, tôm thường lột xác trong 24–72h. Đừng lo nếu thấy xác vỏ — đó là dấu hiệu tốt!</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🚫</div>
+        <h4>Không dùng thuốc đồng (Cu)</h4>
+        <p>Tôm và giáp xác CỰC KỲ nhạy cảm với đồng. Dù liều lượng nhỏ dùng trị bệnh cá cũng đủ giết tôm ngay.</p>
+      </div>
+      <div class="tip-card">
+        <div class="tip-icon">🍤</div>
+        <h4>Cho ăn sau 24h</h4>
+        <p>Chờ ít nhất 24h mới bắt đầu cho ăn. Tôm bác sĩ ăn mysis shrimp, mảnh tôm, rong biển khô nhỏ.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>🦐 Hướng dẫn chăm sóc hồ cá biển · Drip Acclimation for Marine Invertebrates</p>
+    <p style="margin-top: 0.4rem; opacity: 0.6;">Thông tin mang tính tham khảo. Luôn theo dõi sát tôm trong 48h đầu sau khi thả.</p>
+  </div>
+
+</div>
+</body>
+</html>
