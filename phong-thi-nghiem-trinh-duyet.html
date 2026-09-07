@@ -1,0 +1,625 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phòng thí nghiệm trình duyệt</title>
+<style>
+  @property --ang { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+  @property --hue { syntax: '<number>'; inherits: true; initial-value: 200; }
+  @property --fill { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
+
+  :root {
+    --ink: #0F1230;
+    --ink-2: #181C44;
+    --paper: #E9E7FF;
+    --paper-dim: #A9A7CC;
+    --cyan: #5EE7F5;
+    --pink: #FF5EC4;
+    --amber: #FFC857;
+    --rule: color-mix(in oklch, var(--paper) 14%, transparent);
+    font-family: "Segoe UI Variable Text", "Segoe UI", "SF Pro Text", system-ui, sans-serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--ink); color: var(--paper);
+    line-height: 1.55; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--cyan); }
+  button, input[type=range] { font: inherit; }
+  button {
+    background: transparent; color: var(--paper); border: 1.5px solid var(--paper);
+    padding: .55rem 1rem; border-radius: 999px; cursor: pointer;
+    transition: background .18s, color .18s;
+  }
+  button:hover { background: var(--paper); color: var(--ink); }
+  button:focus-visible, canvas:focus-visible, input:focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; }
+  code { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .92em; color: var(--amber); }
+
+  /* ---------- thanh tiến độ: scroll-driven ---------- */
+  .progress {
+    position: fixed; inset: 0 0 auto 0; height: 4px; z-index: 10;
+    background: linear-gradient(90deg, var(--cyan), var(--pink), var(--amber));
+    transform-origin: left; transform: scaleX(0);
+    animation: grow linear both; animation-timeline: scroll(root);
+  }
+  @keyframes grow { to { transform: scaleX(1); } }
+
+  /* ---------- hero ---------- */
+  .hero { position: relative; height: 100svh; min-height: 560px; overflow: hidden; }
+  .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .hero .cover {
+    position: absolute; inset: 0; display: grid; align-content: end;
+    padding: clamp(1.5rem, 5vw, 4rem); pointer-events: none;
+    background: linear-gradient(to top, color-mix(in srgb, var(--ink) 85%, transparent) 0%, transparent 55%);
+  }
+  .hero h1 {
+    margin: 0; font-size: clamp(2.6rem, 8vw, 7.5rem); line-height: .95;
+    letter-spacing: -.035em; font-weight: 650; max-width: 12ch; text-wrap: balance;
+  }
+  .hero p { max-width: 48ch; font-size: clamp(1rem, 1.6vw, 1.25rem); color: var(--paper-dim); margin: 1.25rem 0 0; text-wrap: pretty; }
+  .hero .hint { font-size: .9rem; color: var(--paper-dim); margin-top: 1rem; }
+  .hero .badge {
+    position: absolute; top: 1.25rem; right: 1.25rem; font-size: .85rem;
+    padding: .35rem .75rem; border-radius: 999px; border: 1px solid var(--rule);
+    background: color-mix(in srgb, var(--ink) 60%, transparent); backdrop-filter: blur(8px);
+  }
+
+  /* ---------- các trạm ---------- */
+  main { max-width: 1180px; margin: 0 auto; padding: 0 clamp(1rem, 4vw, 2.5rem); }
+  .station {
+    display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(1.5rem, 5vw, 5rem);
+    padding: clamp(3.5rem, 9vw, 7rem) 0; border-top: 1px solid var(--rule); align-items: start;
+  }
+  .station > .text { max-width: 52ch; position: sticky; top: 3rem; }
+  .station h2 { margin: 0 0 .75rem; font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: -.02em; line-height: 1.1; font-weight: 620; text-wrap: balance; }
+  .station .api { font-family: ui-monospace, "Cascadia Code", Menlo, monospace; font-size: .85rem; color: var(--amber); margin: 0 0 1rem; }
+  .station p { color: var(--paper-dim); margin: 0 0 .9rem; }
+  .station p strong { color: var(--paper); font-weight: 560; }
+  .demo {
+    min-height: 320px; border-radius: 20px; background: var(--ink-2);
+    border: 1px solid var(--rule); padding: 1.5rem; position: relative; container-type: inline-size;
+  }
+  @media (max-width: 820px) {
+    .station { grid-template-columns: 1fr; }
+    .station > .text { position: static; }
+  }
+
+  /* ---------- 2. scroll-driven ---------- */
+  .dial-wrap { display: grid; place-items: center; height: 100%; min-height: 280px; }
+  .dial {
+    width: min(260px, 70cqi); aspect-ratio: 1; border-radius: 50%;
+    background: conic-gradient(from 0deg, var(--cyan) 0 var(--fill), transparent var(--fill) 100%);
+    display: grid; place-items: center; position: relative;
+    animation: dial linear both; animation-timeline: view(); animation-range: entry 0% cover 60%;
+  }
+  .dial::after { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: var(--ink-2); }
+  .dial span { position: relative; font-size: 2.2rem; font-weight: 620; letter-spacing: -.03em; }
+  .dial b { display: block; font-weight: 500; font-size: .85rem; color: var(--paper-dim); }
+  @keyframes dial { from { --fill: 0%; rotate: -120deg; } to { --fill: 100%; rotate: 0deg; } }
+
+  /* ---------- 3. anchor positioning ---------- */
+  .anchors { display: flex; flex-wrap: wrap; gap: .75rem; padding-top: 4rem; padding-bottom: 4rem; justify-content: space-between; }
+  .anchors button { position: relative; }
+  .anchors button:nth-child(1) { anchor-name: --p1; }
+  .anchors button:nth-child(2) { anchor-name: --p2; }
+  .anchors button:nth-child(3) { anchor-name: --p3; }
+  .anchors button:nth-child(4) { anchor-name: --p4; }
+  .tip {
+    position: absolute; position-area: top; margin-bottom: 10px; max-width: 220px;
+    position-try-fallbacks: flip-block, flip-inline;
+    background: var(--amber); color: var(--ink); padding: .6rem .8rem; border-radius: 10px;
+    font-size: .9rem; line-height: 1.35; opacity: 0; translate: 0 6px; transition: opacity .2s, translate .2s;
+    pointer-events: none;
+  }
+  .tip[data-for="p1"] { position-anchor: --p1; } .tip[data-for="p2"] { position-anchor: --p2; }
+  .tip[data-for="p3"] { position-anchor: --p3; } .tip[data-for="p4"] { position-anchor: --p4; }
+  .anchors:has(button:nth-child(1):is(:hover,:focus-visible)) .tip[data-for="p1"],
+  .anchors:has(button:nth-child(2):is(:hover,:focus-visible)) .tip[data-for="p2"],
+  .anchors:has(button:nth-child(3):is(:hover,:focus-visible)) .tip[data-for="p3"],
+  .anchors:has(button:nth-child(4):is(:hover,:focus-visible)) .tip[data-for="p4"] { opacity: 1; translate: 0 0; }
+
+  /* ---------- 4. view transitions ---------- */
+  .deck { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .75rem; margin-bottom: 1rem; }
+  .card {
+    aspect-ratio: 4/3; border-radius: 14px; display: grid; place-items: center;
+    font-size: 1.6rem; font-weight: 620; letter-spacing: -.02em; color: var(--ink);
+  }
+  ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .5s; }
+  ::view-transition-group(*) { animation-duration: .65s; animation-timing-function: cubic-bezier(.3, 1.2, .4, 1); }
+
+  /* ---------- 5. worker + OffscreenCanvas ---------- */
+  .mandel { width: 100%; aspect-ratio: 3/2; border-radius: 12px; display: block; cursor: zoom-in; background: #000; }
+  .row { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; margin-top: 1rem; font-size: .9rem; color: var(--paper-dim); }
+
+  /* ---------- 6. popover + @starting-style ---------- */
+  [popover] {
+    inset: unset; margin: auto; border: 0; border-radius: 18px; padding: 1.5rem 1.75rem; max-width: 34ch;
+    background: var(--paper); color: var(--ink);
+    opacity: 0; transform: translateY(14px) scale(.96);
+    transition: opacity .3s, transform .3s, display .3s allow-discrete, overlay .3s allow-discrete;
+  }
+  [popover]:popover-open { opacity: 1; transform: none; }
+  @starting-style { [popover]:popover-open { opacity: 0; transform: translateY(14px) scale(.96); } }
+  [popover]::backdrop { background: color-mix(in srgb, var(--ink) 70%, transparent); transition: background .3s, display .3s allow-discrete, overlay .3s allow-discrete; }
+  @starting-style { [popover]:popover-open::backdrop { background: transparent; } }
+  [popover] h3 { margin: 0 0 .5rem; font-size: 1.3rem; letter-spacing: -.02em; }
+  [popover] p { color: color-mix(in srgb, var(--ink) 70%, var(--paper)); margin: 0 0 1rem; }
+  [popover] button { border-color: var(--ink); color: var(--ink); }
+  [popover] button:hover { background: var(--ink); color: var(--paper); }
+
+  /* ---------- 7. @property ---------- */
+  .orb-wrap { display: grid; place-items: center; min-height: 280px; gap: 1.25rem; }
+  .orb {
+    width: min(240px, 60cqi); aspect-ratio: 1; border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%, oklch(92% .05 var(--hue)), transparent 45%),
+      conic-gradient(from var(--ang), oklch(72% .19 var(--hue)), oklch(60% .22 calc(var(--hue) + 90)), oklch(78% .16 calc(var(--hue) + 200)), oklch(72% .19 var(--hue)));
+    box-shadow: 0 0 80px oklch(65% .2 var(--hue) / .45);
+    animation: spin 8s linear infinite;
+  }
+  .orb:hover { --hue: 330; }
+  .orb-wrap .orb { transition: --hue 1.2s ease; }
+  @keyframes spin { to { --ang: 360deg; } }
+
+  /* ---------- 8. web audio ---------- */
+  .scope { width: 100%; height: 160px; display: block; border-radius: 12px; background: var(--ink); }
+  input[type=range] { width: 100%; accent-color: var(--pink); }
+
+  /* ---------- bảng hỗ trợ ---------- */
+  .support { border-top: 1px solid var(--rule); padding: clamp(3rem, 8vw, 6rem) 0; }
+  .support h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); letter-spacing: -.02em; margin: 0 0 .5rem; font-weight: 620; }
+  .support p { color: var(--paper-dim); max-width: 60ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .6rem; margin-top: 1.5rem; }
+  .grid div { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem .9rem; border-radius: 10px; background: var(--ink-2); font-size: .95rem; }
+  .grid .ok { color: var(--cyan); } .grid .no { color: var(--pink); }
+  footer { padding: 2rem 0 3rem; color: var(--paper-dim); font-size: .9rem; border-top: 1px solid var(--rule); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress, .dial, .orb { animation: none; }
+    .dial { --fill: 100%; }
+    ::view-transition-group(*), ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+    [popover], [popover]::backdrop, .tip { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" aria-hidden="true"></div>
+
+<section class="hero">
+  <canvas id="gpu" tabindex="0" aria-label="Mô phỏng 150.000 hạt chạy trên GPU, di chuột để hút hạt về phía con trỏ"></canvas>
+  <span class="badge" id="gpuBadge">đang khởi động GPU…</span>
+  <div class="cover">
+    <h1>Phòng thí nghiệm trình duyệt</h1>
+    <p>Tám kỹ thuật mà nền tảng web chỉ mới mở ra gần đây, gom trong một tệp HTML duy nhất. Không thư viện, không bước build.</p>
+    <p class="hint">Di chuột trên nền: 150.000 hạt đang được tính bằng compute shader mỗi khung hình.</p>
+  </div>
+</section>
+
+<main>
+
+  <section class="station" id="s1">
+    <div class="text">
+      <h2>Tính toán song song trên GPU, ngay trong trang</h2>
+      <p class="api">navigator.gpu · WGSL · @compute</p>
+      <p>Phần nền phía trên là một <strong>compute shader</strong>. Toàn bộ vị trí và vận tốc của 150.000 hạt nằm trong một storage buffer trên card đồ hoạ; CPU chỉ gửi toạ độ chuột mỗi khung hình.</p>
+      <p>Với WebGL trước đây, muốn làm việc này phải "lừa" GPU bằng cách nhét dữ liệu vào texture rồi đọc ngược lại. WebGPU cho phép viết thẳng một hàm chạy trên hàng nghìn luồng.</p>
+      <p>Nếu trình duyệt không có WebGPU, trang tự chuyển sang bản CPU với ít hạt hơn, nên bạn vẫn thấy chuyển động.</p>
+    </div>
+    <div class="demo" style="display:grid;place-items:center">
+      <pre style="margin:0;font-size:.82rem;line-height:1.5;color:var(--paper-dim);overflow:auto;max-width:100%"><code style="color:inherit">@compute @workgroup_size(64)
+fn cs(@builtin(global_invocation_id) id: vec3u) {
+  var p = ps[id.x];
+  let d  = u.mouse - p.pos;
+  let r2 = max(dot(d, d), 0.002);
+  p.vel += (d / r2 * 0.0006 + vec2f(-d.y, d.x) / r2 * 0.0003) * u.dt;
+  p.vel *= 0.985;
+  p.pos += p.vel * u.dt;
+  ps[id.x] = p;
+}</code></pre>
+    </div>
+  </section>
+
+  <section class="station" id="s2">
+    <div class="text">
+      <h2>Hoạt ảnh chạy theo thanh cuộn, không cần JavaScript</h2>
+      <p class="api">animation-timeline: scroll() · view()</p>
+      <p>Vạch màu trên đỉnh trang và chiếc đồng hồ bên phải đều là CSS thuần. Thay vì chạy theo thời gian, keyframe được <strong>gắn vào vị trí cuộn</strong>: cuộn lên thì quay ngược, cuộn xuống thì quay xuôi.</p>
+      <p>Trước đây phải bắt sự kiện <code>scroll</code>, tính toán trong JS rồi ghi lại style — dễ giật vì chạy trên luồng chính. Bây giờ compositor tự lo.</p>
+    </div>
+    <div class="demo dial-wrap">
+      <div class="dial"><span id="dialPct">0%<b>vị trí trong khung nhìn</b></span></div>
+    </div>
+  </section>
+
+  <section class="station" id="s3">
+    <div class="text">
+      <h2>Tooltip tự tìm chỗ đứng</h2>
+      <p class="api">anchor-name · position-anchor · position-try-fallbacks</p>
+      <p>Mỗi chú thích bên phải được <strong>neo vào nút của nó bằng CSS</strong>. Đưa chuột hoặc dùng phím Tab để xem. Nếu phía trên hết chỗ, chú thích tự lật xuống dưới; sát mép phải thì tự lật sang trái.</p>
+      <p>Toàn bộ chuyện đo đạc và chọn hướng — việc mà trước đây cần thư viện như Popper — giờ nằm trong ba dòng CSS.</p>
+    </div>
+    <div class="demo">
+      <div class="anchors">
+        <button>Lưu bản nháp</button>
+        <button>Gửi duyệt</button>
+        <button>Sao chép liên kết</button>
+        <button>Xoá vĩnh viễn</button>
+        <div class="tip" data-for="p1">Bản nháp chỉ mình bạn thấy, tự đồng bộ mỗi 30 giây.</div>
+        <div class="tip" data-for="p2">Người duyệt sẽ nhận thông báo ngay. Bạn vẫn sửa được cho đến khi họ mở.</div>
+        <div class="tip" data-for="p3">Liên kết hết hạn sau 7 ngày.</div>
+        <div class="tip" data-for="p4">Không khôi phục được. Hãy chắc chắn trước khi bấm.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="station" id="s4">
+    <div class="text">
+      <h2>Đổi bố cục, trình duyệt tự vẽ đoạn giữa</h2>
+      <p class="api">document.startViewTransition()</p>
+      <p>Bấm <em>Xáo</em>: JavaScript chỉ đổi thứ tự thẻ trong DOM. Trình duyệt chụp trạng thái trước và sau, rồi <strong>tự nội suy chuyển động</strong> cho từng thẻ nhờ <code>view-transition-name</code>.</p>
+      <p>Không có thư viện FLIP, không tính toán bounding box thủ công. Thời gian và đường cong đặt bằng CSS như mọi hoạt ảnh khác.</p>
+    </div>
+    <div class="demo">
+      <div class="deck" id="deck"></div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap">
+        <button id="shuffle">Xáo</button>
+        <button id="sortBtn">Sắp xếp lại</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="station" id="s5">
+    <div class="text">
+      <h2>Vẽ nặng ở luồng phụ, giao diện không khựng</h2>
+      <p class="api">Worker · OffscreenCanvas · transferControlToOffscreen()</p>
+      <p>Tập Mandelbrot bên phải do một <strong>Web Worker</strong> tính và vẽ thẳng lên canvas, không qua luồng chính. Bấm vào một điểm để phóng to ×4 — trong lúc worker vẽ lại, bạn vẫn cuộn trang mượt.</p>
+      <p>Worker được tạo từ một Blob ngay trong tệp này, nên vẫn giữ được tinh thần "một tệp duy nhất".</p>
+    </div>
+    <div class="demo">
+      <canvas class="mandel" id="mandel" width="900" height="600" aria-label="Tập Mandelbrot, bấm để phóng to"></canvas>
+      <div class="row">
+        <span id="mandelInfo">độ phóng ×1</span>
+        <button id="mandelReset">Về ban đầu</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="station" id="s6">
+    <div class="text">
+      <h2>Hộp thoại có mở-đóng mượt bằng HTML thuần</h2>
+      <p class="api">popover · @starting-style · transition-behavior: allow-discrete</p>
+      <p>Nút bên phải không có một dòng JavaScript nào. Thuộc tính <code>popover</code> lo việc mở, đóng khi bấm ra ngoài, phím Esc và lớp phủ tối. <strong>@starting-style</strong> cho phép chuyển cảnh từ <code>display: none</code> — điều CSS trước đây không thể làm.</p>
+    </div>
+    <div class="demo" style="display:grid;place-items:center">
+      <button popovertarget="note">Mở ghi chú</button>
+      <div id="note" popover>
+        <h3>Đây là popover</h3>
+        <p>Mở bằng <code>popovertarget</code>, đóng bằng Esc hoặc bấm ra ngoài. Hoạt ảnh vào ra do CSS xử lý cả hai chiều.</p>
+        <button popovertarget="note" popovertargetaction="hide">Đóng</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="station" id="s7">
+    <div class="text">
+      <h2>Biến CSS có kiểu, nên hoạt ảnh được cả gradient</h2>
+      <p class="api">@property · oklch() · color-mix()</p>
+      <p>Góc quay <code>--ang</code> và sắc độ <code>--hue</code> được khai báo kiểu <code>&lt;angle&gt;</code> và <code>&lt;number&gt;</code>. Nhờ vậy trình duyệt biết cách nội suy chúng, và <strong>một conic-gradient có thể xoay</strong>, một màu oklch có thể trượt sắc độ. Đưa chuột lên quả cầu để đổi màu.</p>
+      <p>Không có <code>@property</code>, biến CSS chỉ là chuỗi ký tự: nhảy thẳng từ giá trị này sang giá trị kia.</p>
+    </div>
+    <div class="demo orb-wrap">
+      <div class="orb" role="img" aria-label="Quả cầu gradient xoay liên tục"></div>
+    </div>
+  </section>
+
+  <section class="station" id="s8">
+    <div class="text">
+      <h2>Tổng hợp âm thanh và soi dạng sóng theo thời gian thực</h2>
+      <p class="api">AudioContext · OscillatorNode · AnalyserNode</p>
+      <p>Hai bộ dao động lệch nhau vài cent, đi qua bộ lọc thông thấp có LFO quét, rồi vào <strong>AnalyserNode</strong> để lấy mẫu dạng sóng vẽ lên canvas. Kéo thanh trượt để đổi cao độ. Mở loa vừa phải.</p>
+    </div>
+    <div class="demo">
+      <canvas class="scope" id="scope" width="800" height="160" aria-hidden="true"></canvas>
+      <div class="row" style="align-items:stretch;flex-direction:column;gap:.9rem">
+        <label>Cao độ <input type="range" id="pitch" min="55" max="440" value="110" step="1"></label>
+        <button id="audioBtn">Phát âm thanh</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="support">
+    <h2>Trình duyệt của bạn đang hỗ trợ gì</h2>
+    <p>Kiểm tra bằng <code>CSS.supports()</code> và thăm dò đối tượng lúc tải trang. Mục nào chưa hỗ trợ, trạm tương ứng ở trên sẽ dùng phương án dự phòng hoặc hiển thị tĩnh.</p>
+    <div class="grid" id="supportGrid"></div>
+  </section>
+
+  <footer>Một tệp HTML, không phụ thuộc ngoài. Mở mã nguồn để xem từng trạm được viết thế nào.</footer>
+</main>
+
+<script>
+/* ===================== 1. WebGPU particles ===================== */
+(async () => {
+  const canvas = document.getElementById('gpu');
+  const badge = document.getElementById('gpuBadge');
+  const N = 150000;
+  const mouse = { x: 0, y: 0, active: false };
+  let attract = 0;
+  const rect = () => canvas.getBoundingClientRect();
+  const setMouse = (cx, cy) => {
+    const r = rect(); const aspect = r.width / r.height;
+    mouse.x = ((cx - r.left) / r.width * 2 - 1) * aspect;
+    mouse.y = -((cy - r.top) / r.height * 2 - 1);
+    mouse.active = true;
+  };
+  canvas.addEventListener('pointermove', e => setMouse(e.clientX, e.clientY));
+  canvas.addEventListener('pointerleave', () => mouse.active = false);
+  canvas.addEventListener('touchmove', e => setMouse(e.touches[0].clientX, e.touches[0].clientY), { passive: true });
+
+  const orbit = (t, aspect) => {
+    if (mouse.active) { attract = Math.min(1, attract + .05); return [mouse.x, mouse.y]; }
+    attract = Math.max(.5, attract - .02);
+    return [Math.cos(t * .4) * .5 * aspect, Math.sin(t * .6) * .45];
+  };
+
+  const fit = () => {
+    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const r = rect();
+    canvas.width = Math.floor(r.width * dpr); canvas.height = Math.floor(r.height * dpr);
+  };
+  fit(); addEventListener('resize', fit);
+
+  if (!('gpu' in navigator)) return fallback('không có WebGPU, chạy bản CPU');
+  let device;
+  try {
+    const adapter = await navigator.gpu.requestAdapter();
+    if (!adapter) throw 0;
+    device = await adapter.requestDevice();
+  } catch { return fallback('WebGPU không khả dụng, chạy bản CPU'); }
+
+  const ctx = canvas.getContext('webgpu');
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  ctx.configure({ device, format, alphaMode: 'premultiplied' });
+
+  const pbuf = device.createBuffer({ size: N * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, mappedAtCreation: true });
+  {
+    const a = new Float32Array(pbuf.getMappedRange());
+    for (let i = 0; i < N; i++) {
+      a[i * 4] = (Math.random() * 2 - 1) * 1.8; a[i * 4 + 1] = Math.random() * 2 - 1;
+      a[i * 4 + 2] = (Math.random() - .5) * .004; a[i * 4 + 3] = (Math.random() - .5) * .004;
+    }
+    pbuf.unmap();
+  }
+  const ubuf = device.createBuffer({ size: 32, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+
+  const common = `
+    struct P { pos: vec2f, vel: vec2f };
+    struct U { mouse: vec2f, dt: f32, attract: f32, aspect: f32, t: f32, pad: vec2f };
+    @group(0) @binding(1) var<uniform> u: U;`;
+  const csCode = common + `
+    @group(0) @binding(0) var<storage, read_write> ps: array<P>;
+    @compute @workgroup_size(64)
+    fn cs(@builtin(global_invocation_id) id: vec3u) {
+      let i = id.x; if (i >= arrayLength(&ps)) { return; }
+      var p = ps[i];
+      let d = u.mouse - p.pos;
+      let r2 = max(dot(d, d), 0.002);
+      let f = d / r2 * 0.0006 * u.attract;
+      let sw = vec2f(-d.y, d.x) / r2 * 0.0003;
+      p.vel += (f + sw) * u.dt;
+      p.vel *= 0.985;
+      p.pos += p.vel * u.dt;
+      let lim = vec2f(u.aspect + 0.05, 1.05);
+      if (p.pos.x >  lim.x) { p.pos.x = -lim.x; } if (p.pos.x < -lim.x) { p.pos.x = lim.x; }
+      if (p.pos.y >  lim.y) { p.pos.y = -lim.y; } if (p.pos.y < -lim.y) { p.pos.y = lim.y; }
+      ps[i] = p;
+    }`;
+  const rsCode = common + `
+    @group(0) @binding(0) var<storage, read> ps: array<P>;
+    struct VO { @builtin(position) pos: vec4f, @location(0) col: vec4f };
+    @vertex fn vs(@builtin(vertex_index) i: u32) -> VO {
+      let p = ps[i]; var o: VO;
+      o.pos = vec4f(p.pos.x / u.aspect, p.pos.y, 0.0, 1.0);
+      let s = clamp(length(p.vel) * 30.0, 0.0, 1.0);
+      let c = mix(vec3f(0.37, 0.91, 0.96), vec3f(1.0, 0.37, 0.77), s);
+      let a = 0.18 + s * 0.5;
+      o.col = vec4f(c * a, a);
+      return o;
+    }
+    @fragment fn fs(@location(0) c: vec4f) -> @location(0) vec4f { return c; }`;
+
+  const cmod = device.createShaderModule({ code: csCode });
+  const rmod = device.createShaderModule({ code: rsCode });
+  const cpipe = device.createComputePipeline({ layout: 'auto', compute: { module: cmod, entryPoint: 'cs' } });
+  const rpipe = device.createRenderPipeline({
+    layout: 'auto', primitive: { topology: 'point-list' },
+    vertex: { module: rmod, entryPoint: 'vs' },
+    fragment: { module: rmod, entryPoint: 'fs', targets: [{ format, blend: { color: { srcFactor: 'one', dstFactor: 'one' }, alpha: { srcFactor: 'one', dstFactor: 'one' } } }] }
+  });
+  const cbg = device.createBindGroup({ layout: cpipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: pbuf } }, { binding: 1, resource: { buffer: ubuf } }] });
+  const rbg = device.createBindGroup({ layout: rpipe.getBindGroupLayout(0), entries: [{ binding: 0, resource: { buffer: pbuf } }, { binding: 1, resource: { buffer: ubuf } }] });
+
+  badge.textContent = 'WebGPU · 150.000 hạt · compute shader';
+  let last = performance.now();
+  const u = new Float32Array(8);
+  const frame = now => {
+    const dt = Math.min(2, (now - last) / 16.67); last = now;
+    const aspect = canvas.width / canvas.height;
+    const [mx, my] = orbit(now / 1000, aspect);
+    u.set([mx, my, dt, attract, aspect, now / 1000, 0, 0]);
+    device.queue.writeBuffer(ubuf, 0, u);
+    const enc = device.createCommandEncoder();
+    const cp = enc.beginComputePass(); cp.setPipeline(cpipe); cp.setBindGroup(0, cbg); cp.dispatchWorkgroups(Math.ceil(N / 64)); cp.end();
+    const rp = enc.beginRenderPass({ colorAttachments: [{ view: ctx.getCurrentTexture().createView(), loadOp: 'clear', clearValue: { r: 0, g: 0, b: 0, a: 0 }, storeOp: 'store' }] });
+    rp.setPipeline(rpipe); rp.setBindGroup(0, rbg); rp.draw(N); rp.end();
+    device.queue.submit([enc.finish()]);
+    requestAnimationFrame(frame);
+  };
+  requestAnimationFrame(frame);
+
+  function fallback(msg) {
+    badge.textContent = msg;
+    const c = canvas.getContext('2d'); const M = 4000;
+    const ps = Array.from({ length: M }, () => ({ x: (Math.random() * 2 - 1) * 1.8, y: Math.random() * 2 - 1, vx: 0, vy: 0 }));
+    let lastT = performance.now();
+    const loop = now => {
+      const dt = Math.min(2, (now - lastT) / 16.67); lastT = now;
+      const aspect = canvas.width / canvas.height; const [mx, my] = orbit(now / 1000, aspect);
+      c.clearRect(0, 0, canvas.width, canvas.height);
+      for (const p of ps) {
+        const dx = mx - p.x, dy = my - p.y, r2 = Math.max(dx * dx + dy * dy, .002);
+        p.vx += (dx / r2 * .0006 * attract - dy / r2 * .0003) * dt; p.vy += (dy / r2 * .0006 * attract + dx / r2 * .0003) * dt;
+        p.vx *= .985; p.vy *= .985; p.x += p.vx * dt; p.y += p.vy * dt;
+        if (Math.abs(p.x) > aspect + .05) p.x = -p.x; if (Math.abs(p.y) > 1.05) p.y = -p.y;
+        const s = Math.min(1, Math.hypot(p.vx, p.vy) * 30);
+        c.fillStyle = `rgba(${94 + 161 * s},${231 - 137 * s},${245 - 49 * s},${.3 + .5 * s})`;
+        c.fillRect((p.x / aspect + 1) / 2 * canvas.width, (1 - p.y) / 2 * canvas.height, 1.5, 1.5);
+      }
+      requestAnimationFrame(loop);
+    };
+    requestAnimationFrame(loop);
+  }
+})();
+
+/* ===================== 2. dial label (chỉ hiển thị số, hoạt ảnh là CSS) ===================== */
+(() => {
+  const dial = document.querySelector('.dial'), lbl = document.getElementById('dialPct');
+  const update = () => {
+    const r = dial.getBoundingClientRect(); const vh = innerHeight;
+    const p = Math.max(0, Math.min(1, (vh - r.top) / (vh * .6 + r.height * .6)));
+    lbl.firstChild.textContent = Math.round(p * 100) + '%';
+  };
+  addEventListener('scroll', update, { passive: true }); update();
+})();
+
+/* ===================== 4. View Transitions ===================== */
+(() => {
+  const deck = document.getElementById('deck');
+  const names = ['Hạ Long', 'Huế', 'Đà Lạt', 'Hội An', 'Cần Thơ', 'Sa Pa'];
+  const hues = [200, 330, 45, 160, 280, 20];
+  names.forEach((n, i) => {
+    const d = document.createElement('div'); d.className = 'card'; d.textContent = n;
+    d.style.viewTransitionName = 'card-' + i; d.style.background = `oklch(80% .14 ${hues[i]})`; d.dataset.i = i;
+    deck.appendChild(d);
+  });
+  const apply = order => {
+    const run = () => order.forEach(i => deck.appendChild(deck.querySelector(`[data-i="${i}"]`)));
+    document.startViewTransition ? document.startViewTransition(run) : run();
+  };
+  document.getElementById('shuffle').onclick = () => apply([...names.keys()].sort(() => Math.random() - .5));
+  document.getElementById('sortBtn').onclick = () => apply([...names.keys()]);
+})();
+
+/* ===================== 5. Worker + OffscreenCanvas ===================== */
+(() => {
+  const canvas = document.getElementById('mandel'), info = document.getElementById('mandelInfo');
+  if (!('OffscreenCanvas' in window) || !canvas.transferControlToOffscreen) { info.textContent = 'trình duyệt chưa hỗ trợ OffscreenCanvas'; return; }
+  const src = `
+    let ctx, W, H;
+    function render(cx, cy, scale) {
+      const maxIt = Math.min(1200, 120 + Math.log2(scale) * 60);
+      const band = 12;
+      let y = 0;
+      const step = () => {
+        const img = ctx.createImageData(W, band);
+        const d = img.data;
+        for (let yy = 0; yy < band && y + yy < H; yy++) {
+          const ci = cy + ((y + yy) / H - .5) * 2 / scale;
+          for (let x = 0; x < W; x++) {
+            const cr = cx + (x / W - .5) * 3 / scale;
+            let zr = 0, zi = 0, it = 0;
+            while (zr * zr + zi * zi < 16 && it < maxIt) { const t = zr * zr - zi * zi + cr; zi = 2 * zr * zi + ci; zr = t; it++; }
+            const o = (yy * W + x) * 4;
+            if (it === maxIt) { d[o] = 6; d[o + 1] = 8; d[o + 2] = 30; }
+            else {
+              const v = it + 1 - Math.log(Math.log(zr * zr + zi * zi)) / Math.LN2;
+              const h = (v * 4) % 360, s = 0.75, l = 0.55;
+              const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+              const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1));
+              d[o] = f(0) * 255; d[o + 1] = f(8) * 255; d[o + 2] = f(4) * 255;
+            }
+            d[o + 3] = 255;
+          }
+        }
+        ctx.putImageData(img, 0, y);
+        y += band;
+        if (y < H) setTimeout(step, 0); else postMessage('done');
+      };
+      step();
+    }
+    onmessage = e => {
+      if (e.data.canvas) { ctx = e.data.canvas.getContext('2d'); W = e.data.canvas.width; H = e.data.canvas.height; }
+      render(e.data.cx, e.data.cy, e.data.scale);
+    };`;
+  const worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+  const off = canvas.transferControlToOffscreen();
+  let view = { cx: -0.6, cy: 0, scale: 1 };
+  const W = canvas.width, H = canvas.height;
+  worker.postMessage({ canvas: off, ...view }, [off]);
+  worker.onmessage = () => info.textContent = `độ phóng ×${view.scale.toLocaleString('vi')}`;
+  canvas.addEventListener('click', e => {
+    const r = canvas.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+    view = { cx: view.cx + (x - .5) * 3 / view.scale, cy: view.cy + (y - .5) * 2 / view.scale, scale: view.scale * 4 };
+    info.textContent = 'worker đang vẽ… (thử cuộn trang lúc này)';
+    worker.postMessage(view);
+  });
+  document.getElementById('mandelReset').onclick = () => { view = { cx: -0.6, cy: 0, scale: 1 }; worker.postMessage(view); };
+})();
+
+/* ===================== 8. Web Audio ===================== */
+(() => {
+  const btn = document.getElementById('audioBtn'), pitch = document.getElementById('pitch');
+  const scope = document.getElementById('scope'), sc = scope.getContext('2d');
+  let ac, osc1, osc2, an, raf;
+  const draw = () => {
+    const buf = new Uint8Array(an.fftSize); an.getByteTimeDomainData(buf);
+    sc.clearRect(0, 0, scope.width, scope.height);
+    sc.strokeStyle = '#FF5EC4'; sc.lineWidth = 2; sc.beginPath();
+    for (let i = 0; i < buf.length; i++) { const x = i / buf.length * scope.width, y = buf[i] / 255 * scope.height; i ? sc.lineTo(x, y) : sc.moveTo(x, y); }
+    sc.stroke(); raf = requestAnimationFrame(draw);
+  };
+  const start = () => {
+    ac = new AudioContext();
+    const filter = ac.createBiquadFilter(); filter.type = 'lowpass'; filter.Q.value = 6;
+    const lfo = ac.createOscillator(); lfo.frequency.value = .25;
+    const lfoGain = ac.createGain(); lfoGain.gain.value = 900; lfo.connect(lfoGain).connect(filter.frequency); filter.frequency.value = 1100;
+    const gain = ac.createGain(); gain.gain.value = .12;
+    an = ac.createAnalyser(); an.fftSize = 1024;
+    osc1 = ac.createOscillator(); osc1.type = 'sawtooth';
+    osc2 = ac.createOscillator(); osc2.type = 'square'; osc2.detune.value = 7;
+    [osc1, osc2].forEach(o => { o.frequency.value = +pitch.value; o.connect(filter); });
+    filter.connect(gain).connect(an).connect(ac.destination);
+    osc1.start(); osc2.start(); lfo.start(); draw();
+    btn.textContent = 'Dừng';
+  };
+  const stop = () => { cancelAnimationFrame(raf); ac.close(); ac = null; btn.textContent = 'Phát âm thanh'; sc.clearRect(0, 0, scope.width, scope.height); };
+  btn.onclick = () => ac ? stop() : start();
+  pitch.oninput = () => { if (ac) [osc1, osc2].forEach(o => o.frequency.setTargetAtTime(+pitch.value, ac.currentTime, .02)); };
+})();
+
+/* ===================== bảng hỗ trợ ===================== */
+(() => {
+  const checks = [
+    ['WebGPU', 'gpu' in navigator],
+    ['Scroll-driven animations', CSS.supports('animation-timeline', 'scroll()')],
+    ['Anchor positioning', CSS.supports('anchor-name', '--a')],
+    ['View Transitions', 'startViewTransition' in document],
+    ['OffscreenCanvas', 'OffscreenCanvas' in window],
+    ['Popover API', 'popover' in HTMLElement.prototype],
+    ['@starting-style / allow-discrete', CSS.supports('transition-behavior', 'allow-discrete')],
+    ['@property (registered custom properties)', 'registerProperty' in CSS],
+    ['oklch() & color-mix()', CSS.supports('color', 'color-mix(in oklch, red, blue)')],
+    ['Container query units (cqi)', CSS.supports('width', '1cqi')],
+    ['text-wrap: balance', CSS.supports('text-wrap', 'balance')],
+    ['Web Audio', 'AudioContext' in window],
+  ];
+  const g = document.getElementById('supportGrid');
+  g.innerHTML = checks.map(([n, ok]) => `<div><span>${n}</span><span class="${ok ? 'ok' : 'no'}">${ok ? 'có' : 'chưa'}</span></div>`).join('');
+})();
+</script>
+</body>
+</html>
